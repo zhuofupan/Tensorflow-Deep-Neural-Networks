@@ -7,44 +7,60 @@ import sys
 sys.path.append("../models")
 sys.path.append("../base")
 from dbn import DBN
-from read_te_data import read_data_sets
-from sklearn.preprocessing import MinMaxScaler
+from cnn import CNN
+from read_te_data import gene_net_datas
 
-# Splitting data
-X_train, Y_train, X_test, Y_test = read_data_sets('../dataset/TE_csv',one_hot=True,shuffle=True)
+dynamic=40
+X_train, Y_train, X_test, Y_test = gene_net_datas(
+        data_dir='../dataset/TE_csv',
+        preprocessing='mm', # gauss单元用‘st’, bin单元用'mm'
+        dynamic=dynamic)
+# X_train.shape = [(480-dynamic+1)*22,dynamic*52]
 
-min_max_scaler = MinMaxScaler() # 归一化
-X_train = min_max_scaler.fit_transform(X_train)
+dim=X_train.shape[1]
+fault=Y_train.shape[1]
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 # Training
-classifier = DBN(output_act_func='softmax',
+select_case = 1
+
+# gauss 激活函数会自动转换为 mse 损失函数
+if select_case==1:
+    classifier = DBN(output_act_func='softmax',
                  hidden_act_func='relu',
                  loss_fuc='cross_entropy',
                  use_for='classification',
                  dbn_lr=1e-3,
                  dbn_epochs=100,
-                 dbn_struct=[52, 100, 100,22],
-                 rbm_h_type='bin',
+                 dbn_struct=[dim, 100, 100,fault],
+                 rbm_v_type='bin',
                  rbm_epochs=10,
                  batch_size=32,
-                 cd_k=1,
-                 rbm_lr=1e-3)
+                 cd_k=10,
+                 rbm_lr=1e-3,
+                 dropout=0.95)
+if select_case==2:
+    classifier = CNN(output_act_func='softmax',
+                 hidden_act_func='relu',
+                 loss_fuc='cross_entropy',
+                 use_for='classification',
+                 cnn_lr=1e-3,
+                 cnn_epochs=100,
+                 img_shape=[dynamic,52],
+                 channels=[1, 6, 6, 64,fault],
+                 fsize=[[4,4],[3,3]], 
+                 ksize=[[2,2],[2,2]],
+                 batch_size=32,
+                 dropout=0.9)
 
-classifier.build_dbn()
-classifier.train_dbn(X_train, Y_train,sess)
+classifier.build_model()
+classifier.train_model(X_train, Y_train,sess)
 
 # Test
-for i in range(len(X_test)):
+Y_pred=list()
+print("[Test data...]")
+for i in range(fault):
     print(">>>Test fault {}:".format(i))
-    X_test[i] = min_max_scaler.transform(X_test[i]) # 归一化
-    Y_pred = classifier.test_dbn(X_test[i], Y_test[i],sess)
-
-#import matplotlib.pyplot as plt
-#PX=range(0,len(Y_pred))
-#plt.figure(1)  # 选择图表1
-#plt.plot(PX, Y_test,'r')
-#plt.plot(PX, Y_pred,'b')
-#plt.show()
+    Y_pred.append(classifier.test_model(X_test[i], Y_test[i],sess))
