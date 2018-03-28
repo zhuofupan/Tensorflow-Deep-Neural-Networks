@@ -171,7 +171,7 @@ def gene_net_datas(data_dir,
             
     # 得到特征选择后的动态数据集
     if ocon:
-        train_x,train_y = get_dynamic_datas(in_type='array', out_type='list', deal_type='no',
+        train_x,train_y = get_dynamic_datas(in_type='array', out_type='array', deal_type='no',
                                             X=train_x, select_dim=select_dim, dynamic=dynamic, one_hot=one_hot)
         test_lx,test_ly = get_dynamic_datas(in_type='list', out_type='list', deal_type='no',
                                             X=test_lx, select_dim=select_dim, dynamic=dynamic, one_hot=one_hot)
