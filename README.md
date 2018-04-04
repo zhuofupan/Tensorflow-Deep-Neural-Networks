@@ -8,4 +8,4 @@ Convolutional Neural Network (CNN) <br />
 Stacked Autoencoder (sAE) <br />
 Stacked Sparse Autoencoder (sSAE) <br />
 Stacked Denoising Autoencoders (sDAE) <br />
-我的知乎：https://zhuanlan.zhihu.com/p/34620909
+<br />我的知乎：https://zhuanlan.zhihu.com/p/34620909
