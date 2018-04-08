@@ -14,6 +14,6 @@ DBN原理：https://blog.csdn.net/itplus/article/details/19168937 <br />
 Hinton源码：http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html <br />
 sDAE原论文：http://www.jmlr.org/papers/volume11/vincent10a/vincent10a.pdf <br />
 sSAE分析TE：https://www.sciencedirect.com/science/article/pii/S0169743917302496 <br />
-# 博客
+# My log
 知乎：https://www.zhihu.com/people/fu-zi-36-41/posts <br />
 CSDN：https://blog.csdn.net/fuzimango/article/list/ <br />
