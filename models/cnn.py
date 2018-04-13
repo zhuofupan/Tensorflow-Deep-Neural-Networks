@@ -50,8 +50,8 @@ class CNN(object):
         self.b=list()
         for i in range(len(self.channels)-3):
             # W,b:conv
-            str_w='W'+str(i)
-            str_b='b'+str(i)
+            str_w='W'+str(i+1)
+            str_b='b'+str(i+1)
             w_shape=[self.fsize[i][0],self.fsize[i][1],self.channels[i],self.channels[i+1]]
             k_shape=[1,self.ksize[i][0],self.ksize[i][1],1]
             self.W.append(tf.Variable(tf.random_normal(shape=w_shape, stddev=0.1), name=str_w))
