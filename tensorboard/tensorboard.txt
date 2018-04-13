@@ -1,0 +1,1 @@
+tensorboard --logdir=E:\Spyder_project\[DBN]\tensorboard\classification_MINST.py

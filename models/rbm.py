@@ -2,10 +2,11 @@
 import tensorflow as tf
 import sys
 sys.path.append("../base")
-from base_func import Batch
+from base_func import Batch,Summaries
 
 class RBM(object):
     def __init__(self,
+                 name='rbm',
                  rbm_v_type='bin',
                  rbm_struct=[784,100],
                  rbm_epochs=10,
@@ -19,7 +20,11 @@ class RBM(object):
         self.batch_size = batch_size
         self.cd_k = cd_k
         self.rbm_lr = rbm_lr
+        self.name=name
         
+        with tf.name_scope(self.name):
+            self.build_model()
+            
     ###################
     #    RBM_model    #
     ###################
@@ -50,19 +55,34 @@ class RBM(object):
         self.train_batch_cdk = [self.w_upd8, self.bh_upd8, self.bv_upd8]
         # loss
         self.loss = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(v0, vk))))
-            
-    def train_model(self,train_X,sess):
+        
+        #****************** Tensorboard ******************
+        Summaries.scalars_histogram('_W',self.W)
+        Summaries.scalars_histogram('_bh',self.bh)
+        Summaries.scalars_histogram('_bv',self.bv)
+        tf.summary.scalar('loss', self.loss)
+        self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,tf.get_default_graph()._name_stack))
+        #*************************************************
+
+    def train_model(self,train_X,sess,summ):
         # 初始化变量
         sess.run(tf.global_variables_initializer())
         _data=Batch(images=train_X,
                     batch_size=self.batch_size)
         n=train_X.shape[0]
+        m=int(n/self.batch_size)
+        mod=max(int(self.rbm_epochs*m/1000),1)
         # 迭代次数
+        k=0
         for i in range(self.rbm_epochs):
             # 批次训练
             for _ in range(int(n/self.batch_size)): 
+                k=k+1
                 batch = _data.next_batch()
-                loss,_= sess.run([self.loss,self.train_batch_cdk],feed_dict={self.input_data: batch})
+                summary,loss,_= sess.run([self.merge,self.loss,self.train_batch_cdk],feed_dict={self.input_data: batch})
+                #**************** 写入 ******************
+                if k%mod==0: summ.train_writer.add_summary(summary, k)
+                #****************************************
             print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
     
     def transform(self,v):

@@ -64,15 +64,65 @@ class Batch(object):
             else:
                 return self._images[start:end]
 
-class Activation(object):   
-    def get_act_func(self,func_name):
-        if func_name=='sigmoid': # S(z) = 1/(1+exp(-z)) ∈ (0,1)
-            return tf.nn.sigmoid
-        if func_name=='softmax': # s(z) = S(z)/∑S(z) ∈ (0,1)
-            return tf.nn.softmax
-        if func_name=='relu':    # r(z) = max(0,z) ∈ (0,+inf)
-            return tf.nn.relu
+def act_func(func_name):
+    if func_name=='sigmoid':   # S(z) = 1/(1+exp(-z)) ∈ (0,1)
+        return tf.nn.sigmoid
+    elif func_name=='softmax': # s(z) = S(z)/∑S(z) ∈ (0,1)
+        return tf.nn.softmax
+    elif func_name=='relu':    # r(z) = max(0,z) ∈ (0,+inf)
+        return tf.nn.relu
+    elif func_name=='gauss':   # g(z) = 1-exp(-x^2) ∈ (0,1)
+        def gauss(x):
+            return 1-tf.exp(-tf.square(x))
+        return gauss
+    elif func_name=='affine':
+        def affine(x):
+            return x
+        return affine
+
+class Initializer(object):
+    
+    def xavier_init(fan_in,fan_out,constant = 1):
+        low   = -constant * np.sqrt(6.0/(fan_in+fan_out))
+        hight =  constant * np.sqrt(6.0/(fan_in+fan_out))
+        return tf.random_uniform((fan_in,fan_out),maxval=hight,minval=low,dtype=tf.float32)
+    
+    def sess_init_new(sess):
+        uninit_vars = []
+        for var in tf.global_variables():
+            try:
+                sess.run(var)
+            except tf.errors.FailedPreconditionError:
+                uninit_vars.append(var)
         
+        init_new_vars_op = tf.variables_initializer(uninit_vars)
+        sess.run(init_new_vars_op)
+    
+    def sess_init_all(sess):
+        sess.run(tf.global_variables_initializer())
+
+class Summaries(object):
+    def __init__(self,
+                 file_name,
+                 sess):
+        # 写到指定的磁盘路径中
+        self.train_writer = tf.summary.FileWriter('../tensorboard/'+file_name, sess.graph)
+   
+    def scalars_histogram(name,var):
+        """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+        with tf.name_scope(name):
+          # 计算参数的均值，并使用tf.summary.scaler记录
+          mean = tf.reduce_mean(var)
+          tf.summary.scalar('mean', mean)
+          # 计算参数的标准差
+          stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+          # 使用tf.summary.scaler记录记录下标准差，最大值，最小值
+          tf.summary.scalar('stddev', stddev)
+          tf.summary.scalar('max', tf.reduce_max(var))
+          tf.summary.scalar('min', tf.reduce_min(var))
+          # 用直方图记录参数的分布
+          tf.summary.histogram('distribution', var)
+
 class Loss(object):
     def __init__(self,
                  label_data,
@@ -106,3 +156,25 @@ class Accuracy(object):
             pre_lables=tf.floor(self.pred+0.5)
             data_lables=tf.floor(self.label_data+0.5)
         return tf.reduce_mean(tf.cast(tf.equal(pre_lables,data_lables),tf.float32))
+    
+class Optimization(object):
+    def __init__(self,r=1e-3,momentum=0.5,use_nesterov=False):
+        self.r = r
+        self.momentum = momentum
+        self.use_nesterov=use_nesterov
+    def trainer(self,algorithm='sgd'):
+        if algorithm=='sgd':
+            optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.r)
+        elif algorithm == "adag":
+            optimizer = tf.train.AdagradOptimizer(learning_rate=self.r,
+                                                  initial_accumulator_value=0.1)
+        elif algorithm == "adam":
+            optimizer = tf.train.AdamOptimizer(learning_rate=self.r,
+                                               beta1=0.9,
+                                               beta2=0.9,
+                                               epsilon=1e-08)
+        elif algorithm == "mmt":
+            optimizer = tf.train.MomentumOptimizer(learning_rate=self.r,
+                                                   momentum=self.momentum,
+                                                   use_nesterov=self.use_nesterov)
+        return optimizer
