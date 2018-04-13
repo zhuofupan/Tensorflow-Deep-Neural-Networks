@@ -70,7 +70,7 @@ if select_case==3:
                  sup_ae_epochs=100,
                  ae_epochs=30,
                  batch_size=32,
-                 ae_lr=1,
+                 ae_lr=1e-3,
                  dropout=1)
 sess = tf.Session()
 summ = Summaries(os.path.basename(__file__),sess=sess)
