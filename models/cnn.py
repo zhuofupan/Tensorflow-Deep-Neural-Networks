@@ -151,6 +151,7 @@ class CNN(object):
             print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
     
     def test_model(self,test_X,test_Y,sess):
+        self.dropout=1.0
         if self.use_for=='classification':
             acc,pred_y=sess.run([self.accuracy,self.pred],feed_dict={self.input_data: test_X,self.label_data: test_Y})
             print('[Accuracy]: %f' % acc)
