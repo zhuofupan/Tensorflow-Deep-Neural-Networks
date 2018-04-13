@@ -21,8 +21,8 @@ mnist = input_data.read_data_sets('../dataset/MNIST_data', one_hot=True)
 # Splitting data
 X_train, X_test, Y_train, Y_test = mnist.train.images,mnist.test.images ,mnist.train.labels, mnist.test.labels
 
-X_train, X_test = X_train[::100], X_test[::100]
-Y_train, Y_test = Y_train[::100], Y_test[::100]
+#X_train, X_test = X_train[::100], X_test[::100]
+#Y_train, Y_test = Y_train[::100], Y_test[::100]
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
