@@ -37,7 +37,7 @@ if select_case==1:
                  use_for='classification',
                  dbn_lr=1e-3,
                  dbn_epochs=100,
-                 dbn_struct=[784, 100, 100,10],
+                 dbn_struct=[784, 200, 10],
                  rbm_v_type='bin',
                  rbm_epochs=10,
                  batch_size=32,
