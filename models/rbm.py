@@ -47,7 +47,7 @@ class RBM(object):
                 _,s_hk=self.transform(vk) # trans（sample）
                 vk=self.reconstruction(s_hk) # recon（compute）
             hk,_=self.transform(vk) # hk
-            with tf.name_scope('Gradient Descent'):
+            with tf.name_scope('Gradient_Descent'):
                 # upd8
                 positive=tf.matmul(tf.expand_dims(v0,-1), tf.expand_dims(h0,1))
                 negative=tf.matmul(tf.expand_dims(vk,-1), tf.expand_dims(hk,1))
