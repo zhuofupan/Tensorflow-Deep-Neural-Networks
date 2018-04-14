@@ -37,22 +37,24 @@ class RBM(object):
         self.bh = tf.Variable(tf.constant(0.1, shape=[self.n_h]),name='bh')
         self.bv = tf.Variable(tf.constant(0.1, shape=[self.n_v]),name='bv')
         self.parameter = [self.W, self.bh]
-        # v0,h0
-        v0=self.input_data # v0
-        h0,s_h0=self.transform(v0) # h0
-        # vk,hk
-        vk=self.reconstruction(s_h0) # v1
-        for k in range(self.cd_k-1):
-            _,s_hk=self.transform(vk) # trans（sample）
-            vk=self.reconstruction(s_hk) # recon（compute）
-        hk,_=self.transform(vk) # hk
-        # upd8
-        positive=tf.matmul(tf.expand_dims(v0,-1), tf.expand_dims(h0,1))
-        negative=tf.matmul(tf.expand_dims(vk,-1), tf.expand_dims(hk,1))
-        self.w_upd8 = self.W.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(positive, negative), 0)))
-        self.bh_upd8 = self.bh.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(h0, hk), 0)))
-        self.bv_upd8 = self.bv.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(v0, vk), 0)))
-        self.train_batch_cdk = [self.w_upd8, self.bh_upd8, self.bv_upd8]
+        with tf.name_scope('CD-k'):
+            # v0,h0
+            v0=self.input_data # v0
+            h0,s_h0=self.transform(v0) # h0
+            # vk,hk
+            vk=self.reconstruction(s_h0) # v1
+            for k in range(self.cd_k-1):
+                _,s_hk=self.transform(vk) # trans（sample）
+                vk=self.reconstruction(s_hk) # recon（compute）
+            hk,_=self.transform(vk) # hk
+            with tf.name_scope('Gradient Descent'):
+                # upd8
+                positive=tf.matmul(tf.expand_dims(v0,-1), tf.expand_dims(h0,1))
+                negative=tf.matmul(tf.expand_dims(vk,-1), tf.expand_dims(hk,1))
+                self.w_upd8 = self.W.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(positive, negative), 0)))
+                self.bh_upd8 = self.bh.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(h0, hk), 0)))
+                self.bv_upd8 = self.bv.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(v0, vk), 0)))
+                self.train_batch_cdk = [self.w_upd8, self.bh_upd8, self.bv_upd8]
         # loss
         self.loss = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(v0, vk))))
         
@@ -87,16 +89,17 @@ class RBM(object):
     
     def transform(self,v):
         z = tf.add(tf.matmul(v, self.W), self.bh)
-        prob_h=tf.nn.sigmoid(z) # compute
-        state_h= tf.to_float(tf.random_uniform([tf.shape(v)[0],self.n_h])<prob_h) # sample
+        prob_h=tf.nn.sigmoid(z,name='prob_h') # compute
+        state_h= tf.to_float(tf.random_uniform([tf.shape(v)[0],self.n_h])<prob_h,name='state_h') # sample
 #        prob_h=z
 #        state_h=tf.add(prob_h, tf.random_uniform([tf.shape(v)[0],self.n_h]))
         return prob_h,state_h
     
     def reconstruction(self,h):
-        z = tf.add(tf.matmul(h, tf.transpose(self.W)), self.bv)
         if self.rbm_v_type=='bin':
-            prob_v=tf.nn.sigmoid(z)
+            z = tf.add(tf.matmul(h, tf.transpose(self.W)), self.bv)
+            prob_v=tf.nn.sigmoid(z,name='prob_v')
         else:
+            z = tf.add(tf.matmul(h, tf.transpose(self.W)), self.bv,name='prob_v')
             prob_v=z
         return prob_v
