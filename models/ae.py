@@ -54,7 +54,6 @@ class AE(object):
         self.p_mat = tf.Variable(tf.constant(self.p, shape=[1,self.n_y]),name='p_mat')
             
         self.var_list = [self.W, self.by, self.bz]
-        self.parameter = [self.W, self.by]
         
         # 建模
         x=self.input_data

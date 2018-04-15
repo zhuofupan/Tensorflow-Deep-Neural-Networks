@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import tensorflow as tf
 tf.reset_default_graph()
 
@@ -12,30 +13,27 @@ from dbn import DBN
 from cnn import CNN
 from sup_sae import supervised_sAE
 from base_func import Initializer,Summaries
-from tensorflow.examples.tutorials.mnist import input_data
+from read_classification_data import load_cifar10_dataset
 
 # Loading dataset
-# Each datapoint is a 8x8 image of a digit.
-mnist = input_data.read_data_sets('../dataset/MNIST_data', one_hot=True)
-
-# Splitting data
-X_train, X_test, Y_train, Y_test = mnist.train.images,mnist.test.images ,mnist.train.labels, mnist.test.labels
+X_train,  Y_train, X_test, Y_test = load_cifar10_dataset('../dataset/CIFAR-10', mode='supervised')
 
 #X_train, X_test = X_train[::100], X_test[::100]
 #Y_train, Y_test = Y_train[::100], Y_test[::100]
+
 x_dim=X_train.shape[1] 
 y_dim=Y_train.shape[1] 
 p_dim=int(np.sqrt(x_dim))
 
 # Training
-select_case = 1
+select_case = 2
 
 if select_case==1:
     classifier = DBN(output_act_func='softmax',
                  hidden_act_func='relu',
                  loss_func='cross_entropy',
                  use_for='classification',
-                 dbn_lr=1e-4,
+                 dbn_lr=1e-3,
                  dbn_epochs=100,
                  dbn_struct=[x_dim, 200, 100, y_dim],
                  rbm_v_type='bin',

@@ -72,13 +72,14 @@ class supervised_sAE(object):
             # 权值 变量（初始化）
             self.out_W = tf.Variable(tf.truncated_normal(shape=[self.sup_ae_struct[-2], self.sup_ae_struct[-1]], stddev=0.1), name='W-out')
             self.out_b = tf.Variable(tf.constant(0.1, shape=[self.sup_ae_struct[-1]]),name='b-out')
-            self.parameter = [self.out_W,self.out_b]
             # 构建sup_sae
             # 构建权值列表（sup_sae结构）
             self.parameter_list = list()
-            for i,ae in enumerate(self.un_sae.ae_list):
-                self.parameter_list.append(ae.parameter)
-            self.parameter_list.append(self.parameter)
+            for ae in self.un_sae.ae_list:
+                self.parameter_list.append(ae.W)
+                self.parameter_list.append(ae.by)
+            self.parameter_list.append(self.out_W)
+            self.parameter_list.append(self.out_b)
             
             # 损失函数
             self.pred=self.transform(self.input_data)
@@ -95,9 +96,13 @@ class supervised_sAE(object):
             self.accuracy=_ac.accuracy()
             
             #****************** 记录 ******************
-            for i,parameter in enumerate(self.parameter_list):
-                Summaries.scalars_histogram('_W'+str(i+1),parameter[0])
-                Summaries.scalars_histogram('_b'+str(i+1),parameter[1])
+            for i in range(len(self.parameter_list)):
+                if i%2==1:continue
+                k=int(i/2+1)
+                W=self.parameter_list[i]
+                b=self.parameter_list[i+1]
+                Summaries.scalars_histogram('_W'+str(k),W)
+                Summaries.scalars_histogram('_b'+str(k),b)
             tf.summary.scalar('loss',self.loss)
             tf.summary.scalar('accuracy',self.accuracy)
             self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,tf.get_default_graph()._name_stack))
@@ -147,11 +152,12 @@ class supervised_sAE(object):
     def transform(self,data_x):
         # 得到网络输出值
         next_data = data_x # 这个next_data是tf变量
-        for parameter in self.parameter_list:
-            W=parameter[0]
-            b=parameter[1]
+        for i in range(len(self.parameter_list)):
+            if i%2==1:continue
+            W=self.parameter_list[i]
+            b=self.parameter_list[i+1]
             z = tf.add(tf.matmul(next_data, W), b)
-            if parameter==self.parameter_list[-1]:
+            if i==len(self.parameter_list)-1:
                 next_data=self.output_act(z)
             else:
                 next_data=self.hidden_act(z)

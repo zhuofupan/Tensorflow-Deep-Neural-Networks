@@ -50,8 +50,8 @@ class CNN(object):
         self.b=list()
         for i in range(len(self.channels)-3):
             # W,b:conv
-            str_w='W'+str(i)
-            str_b='b'+str(i)
+            str_w='W'+str(i+1)
+            str_b='b'+str(i+1)
             w_shape=[self.fsize[i][0],self.fsize[i][1],self.channels[i],self.channels[i+1]]
             k_shape=[1,self.ksize[i][0],self.ksize[i][1],1]
             self.W.append(tf.Variable(tf.random_normal(shape=w_shape, stddev=0.1), name=str_w))
@@ -151,6 +151,7 @@ class CNN(object):
             print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
     
     def test_model(self,test_X,test_Y,sess):
+        self.dropout=1.0
         if self.use_for=='classification':
             acc,pred_y=sess.run([self.accuracy,self.pred],feed_dict={self.input_data: test_X,self.label_data: test_Y})
             print('[Accuracy]: %f' % acc)

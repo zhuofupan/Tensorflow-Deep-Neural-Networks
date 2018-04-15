@@ -76,8 +76,10 @@ class DBN(object):
             # 构建权值列表（dbn结构）
             self.parameter_list = list()
             for rbm in self.dbm.rbm_list:
-                self.parameter_list.append(rbm.parameter)
-            self.parameter_list.append([self.out_W,self.out_b])
+                self.parameter_list.append(rbm.W)
+                self.parameter_list.append(rbm.bh)
+            self.parameter_list.append(self.out_W)
+            self.parameter_list.append(self.out_b)
             # 损失函数
             self.pred=self.transform(self.input_data)
             _loss=Loss(label_data=self.label_data,
@@ -93,9 +95,13 @@ class DBN(object):
             self.accuracy=_ac.accuracy()
             
             #****************** 记录 ******************
-            for i,parameter in enumerate(self.parameter_list):
-                Summaries.scalars_histogram('_W'+str(i+1),parameter[0])
-                Summaries.scalars_histogram('_b'+str(i+1),parameter[1])
+            for i in range(len(self.parameter_list)):
+                if i%2==1:continue
+                k=int(i/2+1)
+                W=self.parameter_list[i]
+                b=self.parameter_list[i+1]
+                Summaries.scalars_histogram('_W'+str(k),W)
+                Summaries.scalars_histogram('_b'+str(k),b)
             tf.summary.scalar('loss',self.loss)
             tf.summary.scalar('accuracy',self.accuracy)
             self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,tf.get_default_graph()._name_stack))
@@ -126,6 +132,7 @@ class DBN(object):
             print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
     
     def test_model(self,test_X,test_Y,sess):
+        self.dropout=1.0
         if self.use_for=='classification':
             acc,pred_y=sess.run([self.accuracy,self.pred],feed_dict={self.input_data: test_X,self.label_data: test_Y})
             print('[Accuracy]: %f' % acc)
@@ -138,11 +145,12 @@ class DBN(object):
     def transform(self,data_x):
         # 得到网络输出值
         next_data = data_x # 这个next_data是tf变量
-        for parameter in self.parameter_list:
-            W=parameter[0]
-            b=parameter[1]
+        for i in range(len(self.parameter_list)):
+            if i%2==1:continue
+            W=self.parameter_list[i]
+            b=self.parameter_list[i+1]
             z = tf.add(tf.matmul(next_data, W), b)
-            if parameter==self.parameter_list[-1]:
+            if i==len(self.parameter_list)-1:
                 next_data=self.output_act(z)
             else:
                 next_data=self.hidden_act(z)
