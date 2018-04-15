@@ -119,7 +119,7 @@ class supervised_sAE(object):
                     batch_size=self.batch_size)
         n=train_X.shape[0]
         m=int(n/self.batch_size)
-        mod=max(int(self.rbm_epochs*m/1000),1)
+        mod=max(int(self.sup_ae_epochs*m/1000),1)
         # 迭代次数
         k=0
         for i in range(self.sup_ae_epochs):
