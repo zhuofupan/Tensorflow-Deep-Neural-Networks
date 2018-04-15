@@ -131,8 +131,6 @@ class CNN(object):
         return tf.nn.max_pool(img, ksize=ksize, strides=[1, 1, 1, 1], padding='VALID')
     
     def train_model(self,train_X,train_Y,sess,summ):
-        # 初始化变量
-        sess.run(tf.global_variables_initializer())
         # 训练
         print("[Start Training...]")   
         _data=Batch(images=train_X,
