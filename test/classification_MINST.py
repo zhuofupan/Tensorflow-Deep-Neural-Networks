@@ -35,14 +35,17 @@ if select_case==1:
                  hidden_act_func='relu',
                  loss_func='cross_entropy',
                  use_for='classification',
+                 bp_algorithm='mmt',
                  dbn_lr=1e-4,
+                 momentum=0.5,
                  dbn_epochs=100,
                  dbn_struct=[x_dim, 200, 100, y_dim],
                  rbm_v_type='bin',
                  rbm_epochs=10,
                  batch_size=32,
                  cd_k=1,
-                 rbm_lr=1e-3)
+                 rbm_lr=1e-3,
+                 dropout=1)
 if select_case==2:
     classifier = CNN(output_act_func='softmax',
                  hidden_act_func='relu',
