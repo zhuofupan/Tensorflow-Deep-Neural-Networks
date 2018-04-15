@@ -98,7 +98,10 @@ class CNN(object):
         self.pred = act_func(self.output_act_func)(z)
         
         # loss,trainer
-        self.parameter_list=[self.W,self.b]
+        self.parameter_list=list()
+        for i in range(len(self.W)):
+            self.parameter_list.append(self.W[i])
+            self.parameter_list.append(self.b[i])
         _loss=Loss(label_data=self.label_data,
                  pred=self.pred,
                  output_act_func=self.output_act_func)
