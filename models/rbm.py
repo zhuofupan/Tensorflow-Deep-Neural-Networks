@@ -67,7 +67,6 @@ class RBM(object):
 
     def train_model(self,train_X,sess,summ):
         # 初始化变量
-        sess.run(tf.global_variables_initializer())
         _data=Batch(images=train_X,
                     batch_size=self.batch_size)
         n=train_X.shape[0]
