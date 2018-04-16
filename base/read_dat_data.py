@@ -102,6 +102,20 @@ def get_dynamic_datas(file_type,
          test：得到动态数据集列表
          test_x[22 , 800-dynamic+1 , dynamic*52] , train_y[22, 800-dynamic+1 , 22(1)]
     """
+    def feature_extraction(nl):
+        feature=[]
+        for j in range(nl.shape[1]):
+            x_columns=nl[:,j]
+            x_mean=np.mean(x_columns,axis=1)
+            x_max=np.max(x_columns,axis=1)
+            x_min=np.min(x_columns,axis=1)
+            x_stddev=np.std(x_columns,axis=1)
+            x_sum=np.sum(x_columns,axis=1)
+            x_feature=[x_mean,x_max,x_min,x_stddev,x_sum]
+            if j==0: feature=x_feature
+            else: feature = np.concatenate((feature,x_feature),axis=0)
+        return feature
+    
     def dynamic_data(x,label):
         # 动态数据集X
         dy_x=[]
@@ -109,7 +123,9 @@ def get_dynamic_datas(file_type,
             if r+1>=dynamic:
                 start=r+1-dynamic
                 end=r+1
-                nl=x[start:end].reshape(1,-1)
+                nl=x[start:end]
+                if Feature_5: nl=feature_extraction(nl) # 提取曲线的5个特征
+                nl=nl.reshape(1,-1)
                 if r+1==dynamic: dy_x=nl
                 else: dy_x = np.concatenate((dy_x,nl),axis=0)
         dy_x=np.asarray(dy_x,dtype='float32')
@@ -225,6 +241,7 @@ fault_start=160
 _3_9_15=-1 # 0 : 3、9、15 视为 Normal ; -1 : 不考虑 3、9、15
 d_start=True # 删除测试集的前 fault_start 个
 if _3_9_15==-1: fault=fault-3
+Feature_5=True
 
 #######################
 #    data_analysis    #
