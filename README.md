@@ -4,6 +4,10 @@ Convolutional Neural Network (CNN) <br />
 Stacked Autoencoder (sAE) <br />
 Stacked Sparse Autoencoder (sSAE) <br />
 Stacked Denoising Autoencoders (sDAE) <br />
+# 版本信息
+Version 2018.4.16
+Chg var_list现在使用一个list，而非嵌套的list
+Fix 分类层激活函数调用错误的bug
 # 测试结果
 用于minst数据集分类，运行得到正确率大概是97.51%； <br />
 用于te数据故障诊断，有的故障诊断效果很好，有的不尽人意。 <br />
