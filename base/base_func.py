@@ -100,7 +100,7 @@ class Initializer(object):
     
     def sess_init_all(sess):
         sess.run(tf.global_variables_initializer())
-
+        
 class Summaries(object):
     def __init__(self,
                  file_name,
@@ -113,7 +113,7 @@ class Summaries(object):
         with tf.name_scope(name):
           # 计算参数的均值，并使用tf.summary.scaler记录
           mean = tf.reduce_mean(var)
-          tf.summary.scalar('mean', mean)
+          #tf.summary.scalar('mean', mean)
           # 计算参数的标准差
           stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
           # 使用tf.summary.scaler记录记录下标准差，最大值，最小值

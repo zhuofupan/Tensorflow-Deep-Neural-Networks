@@ -88,7 +88,7 @@ class AE(object):
                     batch_size=self.batch_size)
         n=train_X.shape[0]
         m=int(n/self.batch_size)
-        mod=max(int(self.rbm_epochs*m/1000),1)
+        mod=max(int(self.ae_epochs*m/1000),1)
         # 迭代次数
         k=0
         A=np.ones((self.batch_size,self.n_x),dtype=np.float32)

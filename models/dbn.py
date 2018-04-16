@@ -8,10 +8,9 @@ from base_func import Batch,Loss,Accuracy,Optimization,act_func,Summaries
 class DBN(object):
     def __init__(self,
                  output_act_func='softmax',
-                 hidden_act_func='relu',
                  loss_func='cross_entropy',
                  use_for='classification',
-                 bp_algorithm='mmt',
+                 bp_algorithm='sgd',
                  dbn_lr=1e-3,
                  momentum=0.5,
                  dbn_epochs=100,
@@ -23,7 +22,6 @@ class DBN(object):
                  rbm_lr=1e-3,
                  dropout=1):
         self.output_act_func=output_act_func
-        self.hidden_act_func=hidden_act_func
         self.loss_func=loss_func
         self.use_for=use_for
         self.bp_algorithm=bp_algorithm
@@ -39,6 +37,11 @@ class DBN(object):
         self.rbm_lr = rbm_lr
         self.dropout = dropout
         
+        if rbm_v_type=='bin':
+            self.hidden_act_func='sigmoid'
+        elif rbm_v_type=='gauss':
+            self.hidden_act_func='affine'
+            
         if output_act_func=='gauss':
             self.loss_func='mse'
         self.hidden_act=act_func(self.hidden_act_func)
@@ -71,7 +74,7 @@ class DBN(object):
             self.label_data = tf.placeholder(tf.float32, [None, self.dbn_struct[-1]]) # N等于batch_size（训练）或_num_examples（测试）
             # 权值 变量（初始化）
             self.out_W = tf.Variable(tf.truncated_normal(shape=[self.dbn_struct[-2], self.dbn_struct[-1]], stddev=0.1), name='W_out')
-            self.out_b = tf.Variable(tf.constant(0.1, shape=[self.dbn_struct[-1]]),name='b_out')
+            self.out_b = tf.Variable(tf.constant(0.0,shape=[self.dbn_struct[-1]]),name='b_out')
             # 构建dbn
             # 构建权值列表（dbn结构）
             self.parameter_list = list()
@@ -118,7 +121,7 @@ class DBN(object):
                     batch_size=self.batch_size)
         n=train_X.shape[0]
         m=int(n/self.batch_size)
-        mod=max(int(self.rbm_epochs*m/1000),1)
+        mod=max(int(self.dbn_epochs*m/1000),1)
         # 迭代次数
         k=0
         for i in range(self.dbn_epochs):
@@ -150,9 +153,10 @@ class DBN(object):
             W=self.parameter_list[i]
             b=self.parameter_list[i+1]
             z = tf.add(tf.matmul(next_data, W), b)
-            if i==len(self.parameter_list)-1:
+            if i==len(self.parameter_list)-2:
                 next_data=self.output_act(z)
             else:
                 next_data=self.hidden_act(z)
-            next_data = tf.nn.dropout(next_data, self.dropout)
+            if self.dropout<1:
+                next_data = tf.nn.dropout(next_data, self.dropout)
         return next_data

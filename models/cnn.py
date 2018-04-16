@@ -13,6 +13,7 @@ class CNN(object):
                  cnn_lr=1e-3,
                  cnn_epochs=100,
                  img_shape=[28,28],
+                 layer_tp=['C','C','P','C','P'],
                  channels=[1, 6, 6, 64, 10], # 输入1张图 -> 卷积池化成6张图 -> 卷积池化成6张图 -> 全连接层 -> 分类层
                  fsize=[[4,4],[3,3]],
                  ksize=[[2,2],[2,2]],
@@ -25,6 +26,7 @@ class CNN(object):
         self.cnn_lr=cnn_lr
         self.cnn_epochs=cnn_epochs
         self.channels = channels
+        self.layer_tp=layer_tp
         self.img_shape = img_shape
         self.fsize = fsize
         self.ksize = ksize
@@ -48,57 +50,70 @@ class CNN(object):
         # conv,max_pool
         self.W=list()
         self.b=list()
-        for i in range(len(self.channels)-3):
-            # W,b:conv
-            str_w='W'+str(i+1)
-            str_b='b'+str(i+1)
-            w_shape=[self.fsize[i][0],self.fsize[i][1],self.channels[i],self.channels[i+1]]
-            k_shape=[1,self.ksize[i][0],self.ksize[i][1],1]
-            self.W.append(tf.Variable(tf.random_normal(shape=w_shape, stddev=0.1), name=str_w))
-            self.b.append(tf.Variable(tf.constant(0.1, shape=[self.channels[i+1]]),name=str_b))
-            
-            # Tensorboard
-            Summaries.scalars_histogram('_W'+str(i+1),self.W[-1])
-            Summaries.scalars_histogram('_b'+str(i+1),self.b[-1])
-            
-            # 卷积、池化操作
-            """transform < conv, max_pool >"""
-            conv = self.conv2d(X, self.W[i], self.b[i])
-            pool = self.max_pool(conv, ksize=k_shape)
-            X = tf.nn.dropout(pool, self.dropout)
+        
+        c=0
+        p=0
+        for layer in self.layer_tp:
+            if layer=='C':
+                # W,b:conv
+                name_W='W_conv'+str(c+1)
+                name_b='b_conv'+str(c+1)
+                W_shape=[self.fsize[c][0],self.fsize[c][1],self.channels[c],self.channels[c+1]]
+                self.W.append(tf.Variable(tf.random_normal(shape=W_shape, stddev=0.1), name=name_W))
+                self.b.append(tf.Variable(tf.constant(0.1, shape=[self.channels[c+1]]),name=name_b))
+                
+                # Tensorboard
+                Summaries.scalars_histogram('_'+name_W,self.W[-1])
+                Summaries.scalars_histogram('_'+name_b,self.b[-1])
+
+                # 卷积操作
+                """transform < conv >"""
+                X = self.conv2d(X, self.W[-1], self.b[-1])
+                c=c+1
+            else:
+                k_shape=[1,self.ksize[p][0],self.ksize[p][1],1]
+                
+                # 池化操作
+                """transform < max_pool >"""
+                X = self.max_pool(X, ksize=k_shape)
+                p=p+1
             
         # full_connect 全连接层
         shape=X.get_shape().as_list()
         full_size=shape[1]* shape[2]*shape[3]
         X = tf.reshape(X, shape=[-1,full_size])
-        # W,b:full_connect
-        self.W.append(tf.Variable(tf.random_normal(shape=[full_size,self.channels[-2]], stddev=0.1), name='W_full'))
-        self.b.append(tf.Variable(tf.constant(0.1, shape=[self.channels[-2]]),name='b_full'))
+        for i in range(c,len(self.channels)-1):
+            if i==c: n1=full_size
+            else: n1=self.channels[i]
+            n2=self.channels[i+1]
+            
+            # W,b:full_connect
+            name_W='W_full'+str(i+1)
+            name_b='b_full'+str(i+1)
+            self.W.append(tf.Variable(tf.random_normal(shape=[n1,n2], stddev=0.1), name=name_W))
+            self.b.append(tf.Variable(tf.constant(0.1, shape=[n2]),name=name_b))
         
-        # Tensorboard
-        Summaries.scalars_histogram('_W_full',self.W[-1])
-        Summaries.scalars_histogram('_b_full',self.b[-1])
-        
-        """transform < full_connect >"""
-        z=tf.add(tf.matmul(X,self.W[-1]), self.b[-1])
-        dense = act_func(self.hidden_act_func)(z) # Relu activation
-        X = tf.nn.dropout(dense, self.dropout) # Apply Dropout
-        
-        # classification
-        # W,b:classification
-        self.W.append(tf.Variable(tf.random_normal(shape=[self.channels[-2],self.channels[-1]], stddev=0.1), name='W_out'))
-        self.b.append(tf.Variable(tf.constant(0.1, shape=[self.channels[-1]]),name='b_out'))
-        
-        # Tensorboard
-        Summaries.scalars_histogram('_W_out',self.W[-1])
-        Summaries.scalars_histogram('_b_out',self.b[-1])
-        
-        """transform < classification >"""
-        z=tf.add(tf.matmul(X,self.W[-1]), self.b[-1])
-        self.pred = act_func(self.output_act_func)(z)
+            # Tensorboard
+            Summaries.scalars_histogram('_'+name_W,self.W[-1])
+            Summaries.scalars_histogram('_'+name_b,self.b[-1])
+            
+            # 全连接
+            """transform < full_connect >"""
+            z=tf.add(tf.matmul(X,self.W[-1]), self.b[-1])
+            
+            if i==len(self.channels)-2:
+                self.pred = act_func(self.output_act_func)(z) # Relu activation
+            else:
+                X = act_func(self.hidden_act_func)(z) # Relu activation
+                if self.dropout<1:
+                    X = tf.nn.dropout(X, self.dropout) # Apply Dropout
         
         # loss,trainer
-        self.parameter_list=[self.W,self.b]
+        self.parameter_list=list()
+        for i in range(len(self.W)):
+            self.parameter_list.append(self.W[i])
+            self.parameter_list.append(self.b[i])
+            
         _loss=Loss(label_data=self.label_data,
                  pred=self.pred,
                  output_act_func=self.output_act_func)
@@ -120,16 +135,13 @@ class CNN(object):
         input = [batch, in_height, in_width, in_channels]
         strides=[filter_height, filter_width, in_channels, out_channels]
         """
-        xW=tf.nn.conv2d(img, w, strides=[1, 1, 1, 1], padding='VALID')
-        z=tf.nn.bias_add(xW,b)
+        z=tf.nn.conv2d(img, w, strides=[1, 1, 1, 1], padding='VALID') + b
         return act_func(self.hidden_act_func)(z)
 
     def max_pool(self,img, ksize):
         return tf.nn.max_pool(img, ksize=ksize, strides=[1, 1, 1, 1], padding='VALID')
     
     def train_model(self,train_X,train_Y,sess,summ):
-        # 初始化变量
-        sess.run(tf.global_variables_initializer())
         # 训练
         print("[Start Training...]")   
         _data=Batch(images=train_X,

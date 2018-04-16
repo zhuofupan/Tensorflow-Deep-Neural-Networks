@@ -119,7 +119,7 @@ class supervised_sAE(object):
                     batch_size=self.batch_size)
         n=train_X.shape[0]
         m=int(n/self.batch_size)
-        mod=max(int(self.rbm_epochs*m/1000),1)
+        mod=max(int(self.sup_ae_epochs*m/1000),1)
         # 迭代次数
         k=0
         for i in range(self.sup_ae_epochs):
@@ -157,9 +157,10 @@ class supervised_sAE(object):
             W=self.parameter_list[i]
             b=self.parameter_list[i+1]
             z = tf.add(tf.matmul(next_data, W), b)
-            if i==len(self.parameter_list)-1:
+            if i==len(self.parameter_list)-2:
                 next_data=self.output_act(z)
             else:
                 next_data=self.hidden_act(z)
-            next_data = tf.nn.dropout(next_data, self.dropout)
+            if self.dropout<1:
+                next_data = tf.nn.dropout(next_data, self.dropout)
         return next_data

@@ -34,8 +34,8 @@ class RBM(object):
         self.input_data = tf.placeholder(tf.float32, [None, self.n_v]) # N等于batch_size（训练）或_num_examples（测试）
         # 权值 变量（初始化）
         self.W = tf.Variable(tf.truncated_normal(shape=[self.n_v, self.n_h], stddev=0.1), name='W')
-        self.bh = tf.Variable(tf.constant(0.1, shape=[self.n_h]),name='bh')
-        self.bv = tf.Variable(tf.constant(0.1, shape=[self.n_v]),name='bv')
+        self.bh = tf.Variable(tf.constant(0.0,shape=[self.n_h]),name='bh')
+        self.bv = tf.Variable(tf.constant(0.0,shape=[self.n_v]),name='bv')
         with tf.name_scope('CD-k'):
             # v0,h0
             v0=self.input_data # v0
@@ -67,7 +67,6 @@ class RBM(object):
 
     def train_model(self,train_X,sess,summ):
         # 初始化变量
-        sess.run(tf.global_variables_initializer())
         _data=Batch(images=train_X,
                     batch_size=self.batch_size)
         n=train_X.shape[0]

@@ -25,6 +25,7 @@ x_dim=X_train.shape[1]
 y_dim=Y_train.shape[1] 
 p_dim=int(np.sqrt(x_dim))
 
+sess = tf.Session()
 # Training
 select_case = 2
 
@@ -49,7 +50,8 @@ if select_case==2:
                  cnn_lr=1e-3,
                  cnn_epochs=30,
                  img_shape=[p_dim,p_dim],
-                 channels=[1, 6, 6, 64, y_dim],
+                 channels=[1, 6, 6, 64, y_dim], # 前几维给 ‘Conv’ ，后几维给 ‘Full connect’
+                 layer_tp=['C','P','C','P'],
                  fsize=[[4,4],[3,3]],
                  ksize=[[2,2],[2,2]],
                  batch_size=32,
@@ -70,9 +72,9 @@ if select_case==3:
                  batch_size=32,
                  ae_lr=1e-3,
                  dropout=1)
-sess = tf.Session()
-summ = Summaries(os.path.basename(__file__),sess=sess)
+    
 Initializer.sess_init_all(sess) # 初始化变量
+summ = Summaries(os.path.basename(__file__),sess=sess)
 classifier.train_model(X_train, Y_train,sess,summ)
 
 # Test

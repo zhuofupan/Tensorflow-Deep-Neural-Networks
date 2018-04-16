@@ -56,6 +56,7 @@ else:
     beta=0.75
     p=0.2
 
+sess = tf.Session()
 # Training
 method=2
 if method==1:
@@ -92,9 +93,8 @@ else:
                  ae_lr=1,
                  dropout=1)
 
-sess = tf.Session()
-summ = Summaries(os.path.basename(__file__),sess=sess)
 Initializer.sess_init_all(sess) # 初始化变量
+summ = Summaries(os.path.basename(__file__),sess=sess)
 classifier.train_model(X_train, Y_train,sess=sess,summ=summ)
 
 # Test
