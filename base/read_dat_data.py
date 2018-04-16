@@ -106,11 +106,11 @@ def get_dynamic_datas(file_type,
         feature=[]
         for j in range(nl.shape[1]):
             x_columns=nl[:,j]
-            x_mean=np.mean(x_columns,axis=1)
-            x_max=np.max(x_columns,axis=1)
-            x_min=np.min(x_columns,axis=1)
-            x_stddev=np.std(x_columns,axis=1)
-            x_sum=np.sum(x_columns,axis=1)
+            x_mean=np.mean(x_columns)
+            x_max=np.max(x_columns)
+            x_min=np.min(x_columns)
+            x_stddev=np.std(x_columns)
+            x_sum=np.sum(x_columns)
             x_feature=[x_mean,x_max,x_min,x_stddev,x_sum]
             if j==0: feature=x_feature
             else: feature = np.concatenate((feature,x_feature),axis=0)
