@@ -9,7 +9,7 @@ Version 2018.4.16 <br />
 Chg var_list现在使用一个list，而非嵌套的list <br />
 Fix 分类层激活函数调用错误的bug
 # 测试结果
-用于minst数据集分类，运行得到正确率大概是97.51%； <br />
+用于minst数据集分类，运行得到正确率可达98.78%； <br />
 用于te数据故障诊断，有的故障诊断效果很好，有的不尽人意。
 # 参考资料
 TF基本函数：http://www.cnblogs.com/wuzhitj/p/6431381.html <br />
