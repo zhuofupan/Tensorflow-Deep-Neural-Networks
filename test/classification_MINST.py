@@ -35,7 +35,7 @@ if select_case==1:
     classifier = DBN(output_act_func='softmax',
                  loss_func='cross_entropy',
                  use_for='classification',
-                 bp_algorithm='adag',
+                 bp_algorithm='adam',
                  dbn_lr=1e-3,
                  momentum=0.5,
                  dbn_epochs=100,
