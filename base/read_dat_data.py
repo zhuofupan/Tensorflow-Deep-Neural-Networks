@@ -241,7 +241,7 @@ fault_start=160
 _3_9_15=-1 # 0 : 3、9、15 视为 Normal ; -1 : 不考虑 3、9、15
 d_start=True # 删除测试集的前 fault_start 个
 if _3_9_15==-1: fault=fault-3
-Feature_5=True
+Feature_5=False
 
 #######################
 #    data_analysis    #
