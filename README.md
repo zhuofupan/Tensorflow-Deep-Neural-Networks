@@ -13,7 +13,7 @@ Fix 分类层激活函数调用错误的bug
 用于te数据故障诊断，有的故障诊断效果很好，有的不尽人意。
 # 参考资料
 TF基本函数：http://www.cnblogs.com/wuzhitj/p/6431381.html <br />
-DBN原理：https://blog.csdn.net/itplus/article/details/19168937 <br />
+RBM原理：https://blog.csdn.net/itplus/article/details/19168937 <br />
 Hinton源码：http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html <br />
 sDAE原论文：http://www.jmlr.org/papers/volume11/vincent10a/vincent10a.pdf <br />
 sSAE分析TE：https://www.sciencedirect.com/science/article/pii/S0169743917302496 <br />
