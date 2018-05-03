@@ -10,9 +10,10 @@ Stacked Denoising Autoencoders (sDAE) <br />
 Version 2018.5.3 <br />
 New 新增了网络RNN与LSTM <br />
 New 新增了保存模型的功能 <br />
+Chg 更改了项目名称 <br />
 Chg 改写了网络的feed部分，现在所有网络共用训练与测试的函数 <br />
-Inf 处于一些原因，我移除TE过程故障诊断的相关code <已经下载的请自行备份> <br />
-Inf sSAE和sDAE的实现可能不太好，劝慎用 <慎重使用> <br />
+Info 出于一些原因，我移除TE过程故障诊断的相关code <已经下载的请自行备份> <br />
+Info sSAE和sDAE的实现可能不太好，劝慎用 <慎重使用> <br />
 # 测试结果
 用于minst数据集分类，运行得到正确率可达98.78%； <br />
 # 参考资料
