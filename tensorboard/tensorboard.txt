@@ -1,0 +1,5 @@
+1.First install tensorborad by : pip install tensorboard
+
+2.run in 'Anaconda Prompt' :
+
+tensorboard --logdir=E:\Spyder_project\[DBN]\tensorboard\classification_MINST.py
