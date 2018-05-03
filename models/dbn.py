@@ -1,46 +1,54 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
+import numpy as np
 from rbms import DBM
 import sys
 sys.path.append("../base")
-from base_func import Batch,Loss,Accuracy,Optimization,act_func,Summaries
+from model import Model
+from base_func import act_func,Summaries
 
-class DBN(object):
+class DBN(Model):
     def __init__(self,
+                 hidden_act_func='relu',
                  output_act_func='softmax',
-                 loss_func='cross_entropy',
-                 use_for='classification',
-                 bp_algorithm='sgd',
-                 dbn_lr=1e-3,
+                 loss_func='mse', # gauss 激活函数会自动转换为 mse 损失函数
+                 struct=[784, 100, 100,10],
+                 lr=1e-4,
                  momentum=0.5,
-                 dbn_epochs=100,
-                 dbn_struct=[784, 100, 100,10],
-                 rbm_v_type='bin',
-                 rbm_epochs=10,
+                 use_for='classification',
+                 bp_algorithm='adam',
+                 epochs=100,
                  batch_size=32,
-                 cd_k=1,
+                 dropout=0.3,
+                 rbm_v_type='gauss',
                  rbm_lr=1e-3,
-                 dropout=1):
+                 rbm_epochs=30,
+                 cd_k=1):
+        Model.__init__(self,'DBN')
         self.output_act_func=output_act_func
+        self.hidden_act_func=hidden_act_func
         self.loss_func=loss_func
         self.use_for=use_for
         self.bp_algorithm=bp_algorithm
-        self.dbn_lr=dbn_lr
+        self.lr=lr
         self.momentum=momentum
-        self.dbn_epochs=dbn_epochs
-        self.dbn_struct = dbn_struct
-        self.dbm_struct = dbn_struct[:-1]
-        self.rbm_v_type=rbm_v_type
-        self.rbm_epochs = rbm_epochs
+        self.epochs=epochs
+        self.struct = struct
         self.batch_size = batch_size
-        self.cd_k = cd_k
-        self.rbm_lr = rbm_lr
         self.dropout = dropout
         
-        if rbm_v_type=='bin':
-            self.hidden_act_func='sigmoid'
-        elif rbm_v_type=='gauss':
-            self.hidden_act_func='affine'
+        self.dbm_struct = struct[:-1]
+        
+        self.rbm_v_type=rbm_v_type
+        self.cd_k = cd_k
+        self.rbm_lr = rbm_lr
+        self.rbm_epochs = rbm_epochs
+        
+         
+#        if rbm_v_type=='bin':
+#            self.hidden_act_func='sigmoid'
+#        elif rbm_v_type=='gauss':
+#            self.hidden_act_func='affine'
             
         if output_act_func=='gauss':
             self.loss_func='mse'
@@ -54,109 +62,71 @@ class DBN(object):
     ###################
     
     def build_model(self):
+        print("Start building model...")
+        print('DBN:')
+        print(self.__dict__)
         """
         Pre-training
         """
         # 构建dbm
-        self.dbm = DBM(rbm_v_type=self.rbm_v_type,
-                 dbm_struct=self.dbm_struct,
-                 rbm_epochs=self.rbm_epochs,
-                 batch_size=self.batch_size,
-                 cd_k=self.cd_k,
-                 rbm_lr=self.rbm_lr)
-        
+        self.pt_model = DBM(rbm_v_type=self.rbm_v_type,
+                       dbm_struct=self.dbm_struct,
+                       rbm_epochs=self.rbm_epochs,
+                       batch_size=self.batch_size,
+                       cd_k=self.cd_k,
+                       rbm_lr=self.rbm_lr)      
         """
         Fine-tuning
         """
         with tf.name_scope('DBN'):
             # feed 变量
-            self.input_data = tf.placeholder(tf.float32, [None, self.dbn_struct[0]]) # N等于batch_size（训练）或_num_examples（测试）
-            self.label_data = tf.placeholder(tf.float32, [None, self.dbn_struct[-1]]) # N等于batch_size（训练）或_num_examples（测试）
+            self.input_data = tf.placeholder(tf.float32, [None, self.struct[0]]) # N等于batch_size（训练）或_num_examples（测试）
+            self.label_data = tf.placeholder(tf.float32, [None, self.struct[-1]]) # N等于batch_size（训练）或_num_examples（测试）
+            self.keep_prob = tf.placeholder(tf.float32) 
             # 权值 变量（初始化）
-            self.out_W = tf.Variable(tf.truncated_normal(shape=[self.dbn_struct[-2], self.dbn_struct[-1]], stddev=0.1), name='W_out')
-            self.out_b = tf.Variable(tf.constant(0.0,shape=[self.dbn_struct[-1]]),name='b_out')
+            self.out_W = tf.Variable(tf.truncated_normal(shape=[self.struct[-2], self.struct[-1]], stddev=np.sqrt(2 / (self.struct[-2] + self.struct[-1]))), name='W_out')
+            self.out_b = tf.Variable(tf.constant(0.0,shape=[self.struct[-1]]),name='b_out')
             # 构建dbn
             # 构建权值列表（dbn结构）
             self.parameter_list = list()
-            for rbm in self.dbm.rbm_list:
-                self.parameter_list.append(rbm.W)
-                self.parameter_list.append(rbm.bh)
+            for pt in self.pt_model.pt_list:
+                self.parameter_list.append(pt.W)
+                self.parameter_list.append(pt.bh)
             self.parameter_list.append(self.out_W)
             self.parameter_list.append(self.out_b)
-            # 损失函数
+            
+            # 构建训练步
             self.pred=self.transform(self.input_data)
-            _loss=Loss(label_data=self.label_data,
-                     pred=self.pred,
-                     output_act_func=self.output_act_func)
-            self.loss=_loss.get_loss_func(self.loss_func)
-            _optimization=Optimization(r=self.dbn_lr,
-                                       momentum=self.momentum)
-            self.train_batch_bp=_optimization.trainer(algorithm=self.bp_algorithm).minimize(self.loss, var_list=self.parameter_list)
-            # 正确率
-            _ac=Accuracy(label_data=self.label_data,
-                     pred=self.pred)
-            self.accuracy=_ac.accuracy()
+            self.build_train_step()
             
             #****************** 记录 ******************
+            cnt=2
             for i in range(len(self.parameter_list)):
-                if i%2==1:continue
-                k=int(i/2+1)
-                W=self.parameter_list[i]
-                b=self.parameter_list[i+1]
-                Summaries.scalars_histogram('_W'+str(k),W)
-                Summaries.scalars_histogram('_b'+str(k),b)
+                if i%cnt!=0:continue
+                k=int(i/cnt+1)
+                Summaries.scalars_histogram('_W'+str(k),self.parameter_list[i])
+                Summaries.scalars_histogram('_b'+str(k),self.parameter_list[i+1])
             tf.summary.scalar('loss',self.loss)
             tf.summary.scalar('accuracy',self.accuracy)
-            self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,tf.get_default_graph()._name_stack))
+            self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'DBN'))
             #******************************************
-        
-    def train_model(self,train_X,train_Y,sess,summ):
-        # 预训练
-        print("Start Pre-training...")
-        self.dbm.train_model(train_X,sess,summ)
-        # 微调
-        print("Start Fine-tuning...")  
-        _data=Batch(images=train_X,
-                    labels=train_Y,
-                    batch_size=self.batch_size)
-        n=train_X.shape[0]
-        m=int(n/self.batch_size)
-        mod=max(int(self.dbn_epochs*m/1000),1)
-        # 迭代次数
-        k=0
-        for i in range(self.dbn_epochs):
-            for _ in range(m): 
-                k=k+1
-                batch_x, batch_y= _data.next_batch()
-                summary,loss,_=sess.run([self.merge,self.loss,self.train_batch_bp],feed_dict={self.input_data: batch_x,self.label_data: batch_y})
-                #**************** 写入 ******************
-                if k%mod==0: summ.train_writer.add_summary(summary, k)
-                #****************************************
-            print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
-    
-    def test_model(self,test_X,test_Y,sess):
-        self.dropout=1.0
-        if self.use_for=='classification':
-            acc,pred_y=sess.run([self.accuracy,self.pred],feed_dict={self.input_data: test_X,self.label_data: test_Y})
-            print('[Accuracy]: %f' % acc)
-            return pred_y
-        else:
-            loss,pred_y=sess.run([self.loss,self.pred],feed_dict={self.input_data: test_X,self.label_data: test_Y})
-            print('[MSE]: %f' % loss)
-            return pred_y
-    
+            
     def transform(self,data_x):
+        cnt=2
         # 得到网络输出值
         next_data = data_x # 这个next_data是tf变量
         for i in range(len(self.parameter_list)):
-            if i%2==1:continue
+            if i%cnt!=0:continue
             W=self.parameter_list[i]
             b=self.parameter_list[i+1]
+            
+            if self.dropout>0:
+                next_data = tf.nn.dropout(next_data, self.keep_prob)
+                
             z = tf.add(tf.matmul(next_data, W), b)
-            if i==len(self.parameter_list)-2:
+            if i==len(self.parameter_list)-cnt:
                 next_data=self.output_act(z)
             else:
                 next_data=self.hidden_act(z)
-            if self.dropout<1:
-                next_data = tf.nn.dropout(next_data, self.dropout)
+            
         return next_data

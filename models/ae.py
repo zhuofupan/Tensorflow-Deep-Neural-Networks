@@ -3,9 +3,10 @@ import tensorflow as tf
 import numpy as np
 import sys
 sys.path.append("../base")
-from base_func import Batch,Loss,Optimization,act_func,Summaries
+from model import Model
+from base_func import Loss,act_func,Summaries
 
-class AE(object):
+class AE(Model):
     
     def __init__(self,
                  name='AE-1',
@@ -19,6 +20,7 @@ class AE(object):
                  ae_epochs=10,
                  batch_size=32,
                  ae_lr=1e-3):
+        Model.__init__(self,name)
         self.name=name
         self.en_func=en_func
         self.loss_func=loss_func
@@ -31,21 +33,24 @@ class AE(object):
         self.ae_epochs = ae_epochs
         self.batch_size = batch_size
         self.ae_lr = ae_lr
-        self.momentum=0.0
+        self.momentum= 0.5
         if loss_func=='mse': self.de_func='affine'
         else : self.de_func='sigmoid'
         if ae_type=='sae'and self.de_func=='affine': self.de_func='relu'
         
         with tf.name_scope(self.name):
             self.build_model()
-        
+            
     ###################
     #    RBM_model    #
     ###################
     
     def build_model(self):
+        print(self.name + ':')
+        print(self.__dict__)
         # feed 变量
         self.input_data = tf.placeholder(tf.float32, [None, self.n_x],name='X') # N等于batch_size（训练）或_num_examples（测试）
+        self.label_data = tf.placeholder(tf.float32, [None, self.n_x],name='Y')
         self.A = tf.placeholder(tf.float32, [None, self.n_x],name='A') 
         # 权值 变量（初始化）
         self.W = tf.Variable(tf.truncated_normal(shape=[self.n_x, self.n_y], stddev=0.1), name='W')
@@ -58,55 +63,27 @@ class AE(object):
         # 建模
         x=self.input_data
         y=self.transform(x)
-        z=self.reconstruction(y)
+        self.pred=self.reconstruction(y)
         if self.ae_type=='dae': # 去噪自编码器 [dae]
-            self.loss = self.get_denoising_loss(x,z)
+            self.loss = self.get_denoising_loss(x,self.pred)
         else: 
             _loss=Loss(label_data=self.input_data, # 自编码器 [ae]
-                       pred=z,
+                       pred=self.pred,
                        output_act_func=self.de_func)
             self.loss=_loss.get_loss_func(self.loss_func)
             if self.ae_type=='sae': # 稀疏自编码器 [sae]
                 self.loss = (1-self.beta)*self.loss + self.beta*self.KL(y) 
         
-        _optimization=Optimization(r=self.ae_lr,
-                                   momentum=self.momentum,
-                                   use_nesterov=True)
-        self.train_batch_bp=_optimization.trainer(algorithm='sgd').minimize(self.loss, var_list=self.var_list)
+        # 构建训练步
+        self.build_train_step()
         
         #****************** Tensorboard ******************
         Summaries.scalars_histogram('_W',self.W)
         Summaries.scalars_histogram('_bz',self.bz)
         Summaries.scalars_histogram('_by',self.by)
         tf.summary.scalar('loss', self.loss)
-        self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,tf.get_default_graph()._name_stack))
+        self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,self.name))
         #*************************************************
-        
-    def train_model(self,train_X,sess,summ):
-        # 初始化变量
-        _data=Batch(images=train_X,
-                    batch_size=self.batch_size)
-        n=train_X.shape[0]
-        m=int(n/self.batch_size)
-        mod=max(int(self.ae_epochs*m/1000),1)
-        # 迭代次数
-        k=0
-        A=np.ones((self.batch_size,self.n_x),dtype=np.float32)
-        for i in range(self.ae_epochs):
-            # 批次训练
-            self.momentum=i/self.ae_epochs
-            for _ in range(m): 
-                k=k+1
-                batch = _data.next_batch()
-                if self.ae_type=='dae':
-                    batch,A=self.add_noise(batch)
-                summary,loss,_= sess.run([self.merge,self.loss,self.train_batch_bp],
-                                         feed_dict={self.input_data: batch,self.A: A})
-                
-                #**************** 写入 ******************
-                if k%mod==0: summ.train_writer.add_summary(summary, k)
-                #****************************************   
-            print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
     
     def add_noise(self,x):
         # A为损失系数矩阵，一行对应一个样本，引入噪声的维度系数为alpha，未引入噪声的为beta
@@ -131,10 +108,6 @@ class AE(object):
         add_in = tf.add(tf.matmul(y, tf.transpose(self.W)), self.bz)
         if self.loss_func=='mse': return add_in
         else: return tf.nn.sigmoid(add_in)
-        
-    def samples(self,y):
-        return tf.round(y) # 舍近采样
-        # return tf.to_float(tf.random_uniform([tf.shape(y)[0],self.n_y])<y) # 随机采样
     
     def get_denoising_loss(self,x,z):
         if self.loss_func=='mse':
@@ -150,8 +123,3 @@ class AE(object):
         p = tf.clip_by_value(self.p_mat, 1e-10, 1.0)
         kl=p*tf.log(p/q)/tf.log(2.)+(1-p)*tf.log((1-p)/(1-q))/tf.log(2.)
         return tf.reduce_sum(kl)
-
-if __name__ == "__main__":
-    ae=AE()
-    ae.build_model()
-    print('ok')

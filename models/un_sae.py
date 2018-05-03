@@ -35,7 +35,7 @@ class unsupervised_sAE(object):
         # feed 变量
         self.input_data = tf.placeholder(tf.float32, [None, self.un_ae_struct[0]]) # N等于_num_examples或batch_size
         # 构建rmbs
-        self.ae_list = list()
+        self.pt_list = list()
         for i in range(len(self.un_ae_struct) -1):
             print('Build AE-{}...'.format(i+1))
             n_x = self.un_ae_struct[i]
@@ -55,18 +55,13 @@ class unsupervised_sAE(object):
                     batch_size=self.batch_size,
                     ae_lr=self.ae_lr)
             # print(ae.__dict__)
-            self.ae_list.append(ae) # 加入list
+            self.pt_list.append(ae) # 加入list
             
     def train_model(self,train_X,sess,summ):
-        next_data = train_X # 这个next_data是实数
-        for i,ae in enumerate(self.ae_list):
+        X = train_X 
+        for i,ae in enumerate(self.pt_list):
             print('>>> Training AE-{}:'.format(i+1))
             # 训练第i个AE（按batch）
-            ae.train_model(next_data,sess=sess,summ=summ)
+            ae.unsupervised_train_model(X,sess=sess,summ=summ)
             # 得到transform值（train_X）
-            next_data = sess.run(ae.transform(next_data))
-
-if __name__ == "__main__":
-    un_ae=unsupervised_sAE()
-    un_ae.build_model()
-    print('ok')
+            X = sess.run(ae.transform(X))

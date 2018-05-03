@@ -72,12 +72,12 @@ def act_func(func_name):
     elif func_name=='relu':    # r(z) = max(0,z) ∈ (0,+inf)
         return tf.nn.relu
     elif func_name=='gauss':   # g(z) = 1-exp(-x^2) ∈ (0,1)
-        def gauss(x):
-            return 1-tf.exp(-tf.square(x))
+        def gauss(z):
+            return 1-tf.exp(-tf.square(z))
         return gauss
     elif func_name=='affine':
-        def affine(x):
-            return x
+        def affine(z):
+            return z
         return affine
 
 class Initializer(object):
@@ -147,6 +147,7 @@ class Accuracy(object):
                  pred):
         self.label_data = label_data
         self.pred = pred
+        self.t=0.
         
     def accuracy(self):
         if self.label_data.shape[1]>1:
@@ -162,19 +163,31 @@ class Optimization(object):
         self.r = r
         self.momentum = momentum
         self.use_nesterov=use_nesterov
+    
     def trainer(self,algorithm='sgd'):
         if algorithm=='sgd':
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.r)
-        elif algorithm == "adag":
+        elif algorithm == 'adag':
             optimizer = tf.train.AdagradOptimizer(learning_rate=self.r,
                                                   initial_accumulator_value=0.1)
-        elif algorithm == "adam":
+        elif algorithm == 'adam':
             optimizer = tf.train.AdamOptimizer(learning_rate=self.r,
                                                beta1=0.9,
-                                               beta2=0.9,
-                                               epsilon=1e-08)
-        elif algorithm == "mmt":
+                                               beta2=0.999,
+                                               epsilon=1e-8)
+        elif algorithm == 'mmt':
             optimizer = tf.train.MomentumOptimizer(learning_rate=self.r,
                                                    momentum=self.momentum,
                                                    use_nesterov=self.use_nesterov)
+        elif algorithm == 'rmsp':
+            optimizer = tf.train.RMSPropOptimizer(learning_rate=self.r,
+                                                  momentum=self.momentum)
         return optimizer
+
+def BN(var,z,gamma,beta):
+    mean = tf.reduce_mean(var)
+    stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+    # mean, variance = tf.nn.moments(var)
+    z=(z-mean)/stddev
+    z=gamma*z+beta
+    return z

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
+import numpy as np
 import sys
 sys.path.append("../base")
-from base_func import Batch,Summaries
+from model import Model
+from base_func import Summaries
 
-class RBM(object):
+class RBM(Model):
     def __init__(self,
                  name='rbm',
                  rbm_v_type='bin',
@@ -13,27 +15,37 @@ class RBM(object):
                  batch_size=32,
                  cd_k=1,
                  rbm_lr=1e-3):
+        Model.__init__(self,name)
+        self.name=name
         self.rbm_v_type=rbm_v_type
         self.n_v = rbm_struct[0]
         self.n_h = rbm_struct[1]
-        self.rbm_epochs = rbm_epochs
+        self.epochs = rbm_epochs
         self.batch_size = batch_size
         self.cd_k = cd_k
-        self.rbm_lr = rbm_lr
-        self.name=name
-        
+        self.lr = rbm_lr
+         
         with tf.name_scope(self.name):
             self.build_model()
+            
             
     ###################
     #    RBM_model    #
     ###################
     
     def build_model(self):
+        print(self.name + ':')
+        print(self.__dict__)
         # feed 变量
         self.input_data = tf.placeholder(tf.float32, [None, self.n_v]) # N等于batch_size（训练）或_num_examples（测试）
+        self.label_data = tf.placeholder(tf.float32, [None, self.n_v])
         # 权值 变量（初始化）
-        self.W = tf.Variable(tf.truncated_normal(shape=[self.n_v, self.n_h], stddev=0.1), name='W')
+        """
+        tf.truncated_normal(shape=[self.n_v, self.n_h], stddev = np.sqrt(2 / (self.n_v + self.n_h)))
+        tf.random_uniform(shape=[self.n_v, self.n_h], stddev = np.sqrt(6 / (self.n_v + self.n_h)))        
+        tf.glorot_uniform_initializer()
+        """
+        self.W = tf.Variable(tf.truncated_normal(shape=[self.n_v, self.n_h], stddev = np.sqrt(2 / (self.n_v + self.n_h))), name='W')
         self.bh = tf.Variable(tf.constant(0.0,shape=[self.n_h]),name='bh')
         self.bv = tf.Variable(tf.constant(0.0,shape=[self.n_v]),name='bv')
         with tf.name_scope('CD-k'):
@@ -46,45 +58,33 @@ class RBM(object):
                 _,s_hk=self.transform(vk) # trans（sample）
                 vk=self.reconstruction(s_hk) # recon（compute）
             hk,_=self.transform(vk) # hk
+            self.pred = vk
+            
             with tf.name_scope('Gradient_Descent'):
                 # upd8
                 positive=tf.matmul(tf.expand_dims(v0,-1), tf.expand_dims(h0,1))
                 negative=tf.matmul(tf.expand_dims(vk,-1), tf.expand_dims(hk,1))
-                self.w_upd8 = self.W.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(positive, negative), 0)))
-                self.bh_upd8 = self.bh.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(h0, hk), 0)))
-                self.bv_upd8 = self.bv.assign_add(tf.multiply(self.rbm_lr, tf.reduce_mean(tf.subtract(v0, vk), 0)))
-                self.train_batch_cdk = [self.w_upd8, self.bh_upd8, self.bv_upd8]
-        # loss
-        self.loss = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(v0, vk))))
+                
+                grad_W= tf.reduce_mean(tf.subtract(positive, negative), 0)
+                grad_bh= tf.reduce_mean(tf.subtract(h0, hk), 0) 
+                grad_bv= tf.reduce_mean(tf.subtract(v0, vk), 0) 
+
+                self.w_upd8 = self.W.assign_add(grad_W *self.lr)
+                self.bh_upd8 = self.bh.assign_add(grad_bh *self.lr)
+                self.bv_upd8 = self.bv.assign_add(grad_bv *self.lr) 
+                # 构建训练步
+                self.train_batch =  [self.w_upd8, self.bh_upd8, self.bv_upd8]
+                
+        self.build_train_step()
         
         #****************** Tensorboard ******************
         Summaries.scalars_histogram('_W',self.W)
         Summaries.scalars_histogram('_bh',self.bh)
         Summaries.scalars_histogram('_bv',self.bv)
         tf.summary.scalar('loss', self.loss)
-        self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,tf.get_default_graph()._name_stack))
+        self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,self.name))
         #*************************************************
 
-    def train_model(self,train_X,sess,summ):
-        # 初始化变量
-        _data=Batch(images=train_X,
-                    batch_size=self.batch_size)
-        n=train_X.shape[0]
-        m=int(n/self.batch_size)
-        mod=max(int(self.rbm_epochs*m/1000),1)
-        # 迭代次数
-        k=0
-        for i in range(self.rbm_epochs):
-            # 批次训练
-            for _ in range(int(n/self.batch_size)): 
-                k=k+1
-                batch = _data.next_batch()
-                summary,loss,_= sess.run([self.merge,self.loss,self.train_batch_cdk],feed_dict={self.input_data: batch})
-                #**************** 写入 ******************
-                if k%mod==0: summ.train_writer.add_summary(summary, k)
-                #****************************************
-            print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
-    
     def transform(self,v):
         z = tf.add(tf.matmul(v, self.W), self.bh)
         prob_h=tf.nn.sigmoid(z,name='prob_h') # compute
