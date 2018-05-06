@@ -31,20 +31,12 @@ sess = tf.Session()
 select_case = 1
 
 if select_case==1:
-<<<<<<< HEAD
     classifier = DBN(
                  hidden_act_func='sigmoid',
                  output_act_func='softmax',
                  loss_func='cross_entropy', # gauss 激活函数会自动转换为 mse 损失函数
                  struct=[x_dim, 100, 50, y_dim],
                  lr=1e-3,
-=======
-    classifier = DBN(output_act_func='softmax',
-                 loss_func='cross_entropy',
-                 use_for='classification',
-                 bp_algorithm='adam',
-                 dbn_lr=1e-3,
->>>>>>> 4264eee5bcc3304abc64f7a1b22cf3c5b3cd37f4
                  momentum=0.5,
                  use_for='classification',
                  bp_algorithm='adam',
