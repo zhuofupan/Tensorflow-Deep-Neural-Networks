@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import numpy as np
 import tensorflow as tf
+import numpy as np
+import os
 
 class Batch(object):
     def __init__(self,
@@ -71,7 +72,7 @@ def act_func(func_name):
         return tf.nn.softmax
     elif func_name=='relu':    # r(z) = max(0,z) ∈ (0,+inf)
         return tf.nn.relu
-    elif func_name=='gauss':   # g(z) = 1-exp(-x^2) ∈ (0,1)
+    elif func_name=='gauss':   # g(z) = 1-exp(-z^2) ∈ (0,1)
         def gauss(z):
             return 1-tf.exp(-tf.square(z))
         return gauss
@@ -79,6 +80,10 @@ def act_func(func_name):
         def affine(z):
             return z
         return affine
+    elif func_name=='tanh2':
+        def tanh2(z):
+            return (1-tf.exp(-tf.square(z)))/(1+tf.exp(-tf.square(z)))
+        return tanh2
 
 class Initializer(object):
     
@@ -106,6 +111,7 @@ class Summaries(object):
                  file_name,
                  sess):
         # 写到指定的磁盘路径中
+        if not os.path.exists('../tensorboard/'): os.makedirs('../tensorboard/')
         self.train_writer = tf.summary.FileWriter('../tensorboard/'+file_name, sess.graph)
    
     def scalars_histogram(name,var):
