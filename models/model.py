@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 import numpy as np
+import os
 
 import sys
 sys.path.append("../base")
@@ -47,24 +48,26 @@ class Model(object):
             self.train_batch=self._optimization.trainer(algorithm=self.bp_algorithm).minimize(self.loss,global_step=self.global_step)
         
     def train_model(self,train_X,train_Y=None,val_X=None,val_Y=None,sess=None,summ=None,load_saver=''):
-        pt_save_path='../saver/'+self.name+'/pre-train.ckpt'
-        ft_save_path='../saver/'+self.name+'/fine-tune.ckpt'
+        pt_save_path='../saver/'+self.name
+        ft_save_path='../saver/'+self.name
+        if not os.path.exists(pt_save_path): os.makedirs(pt_save_path)
+        if not os.path.exists(ft_save_path): os.makedirs(ft_save_path)
         saver = tf.train.Saver()
         if load_saver=='load_f':
             # 加载训练好的模型
             print("Load Fine-tuned model...")
-            saver.restore(sess,ft_save_path)
+            saver.restore(sess,ft_save_path+'/fine-tune.ckpt')
             return
         elif load_saver=='load_p':
             # 加载预训练的模型
             print("Load Pre-trained model...")
-            saver.restore(sess,pt_save_path)
+            saver.restore(sess,pt_save_path+'/pre-train.ckpt')
         elif self.pt_model is not None:
             # 开始预训练
             print("Start Pre-training...")
             self.pt_model.train_model(train_X=train_X,sess=sess,summ=summ)
             print("Save Pre-trained model...")
-            saver.save(sess,pt_save_path)
+            saver.save(sess,pt_save_path+'/pre-train.ckpt')
         # 开始微调
         print("Start Fine-tuning...")
         _data=Batch(images=train_X,
@@ -99,7 +102,7 @@ class Model(object):
                 self.validation_model(val_X,val_Y,sess)
                 
         print("Save model...")
-        saver.save(sess,ft_save_path)
+        saver.save(sess,ft_save_path+'/fine-tune.ckpt')
     
     def unsupervised_train_model(self,train_X,sess,summ):
         _data=Batch(images=train_X,
