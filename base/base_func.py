@@ -111,8 +111,9 @@ class Summaries(object):
                  file_name,
                  sess):
         # 写到指定的磁盘路径中
-        if not os.path.exists('../tensorboard/'): os.makedirs('../tensorboard/')
-        self.train_writer = tf.summary.FileWriter('../tensorboard/'+file_name, sess.graph)
+        write_path = '../tensorboard/'+file_name
+        if not os.path.exists(write_path): os.makedirs(write_path)
+        self.train_writer = tf.summary.FileWriter(write_path, sess.graph)
    
     def scalars_histogram(name,var):
         """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
