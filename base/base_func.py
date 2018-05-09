@@ -154,15 +154,14 @@ class Accuracy(object):
                  pred):
         self.label_data = label_data
         self.pred = pred
-        self.t=0.
         
     def accuracy(self):
         if self.label_data.shape[1]>1:
-            pre_lables=tf.argmax(self.pred,axis=1)
-            data_lables=tf.argmax(self.label_data,axis=1)
+            pre_lables=tf.argmax(self.pred,axis=0)
+            data_lables=tf.argmax(self.label_data,axis=0)
         else:
-            pre_lables=tf.floor(self.pred+0.5)
-            data_lables=tf.floor(self.label_data+0.5)
+            pre_lables=tf.round(self.pred)
+            data_lables=tf.round(self.label_data)
         return tf.reduce_mean(tf.cast(tf.equal(pre_lables,data_lables),tf.float32))
     
 class Optimization(object):
