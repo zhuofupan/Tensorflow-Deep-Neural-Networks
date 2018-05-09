@@ -157,8 +157,8 @@ class Accuracy(object):
         
     def accuracy(self):
         if self.label_data.shape[1]>1:
-            pre_lables=tf.argmax(self.pred,axis=0)
-            data_lables=tf.argmax(self.label_data,axis=0)
+            pre_lables=tf.argmax(self.pred,axis=1)
+            data_lables=tf.argmax(self.label_data,axis=1)
         else:
             pre_lables=tf.round(self.pred)
             data_lables=tf.round(self.label_data)
