@@ -42,7 +42,7 @@ if select_case==1:
                  bp_algorithm='rmsp',
                  epochs=100,
                  batch_size=32,
-                 dropout=0.15,
+                 dropout=0.1,
                  units_type=['gauss','bin'],
                  rbm_lr=1e-3,
                  rbm_epochs=16,
