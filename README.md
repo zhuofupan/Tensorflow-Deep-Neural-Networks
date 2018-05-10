@@ -7,13 +7,14 @@ Stacked Autoencoder (sAE) <br />
 Stacked Sparse Autoencoder (sSAE) <br />
 Stacked Denoising Autoencoders (sDAE) <br />
 # 版本信息
-Version 2018.5.3 <br />
+Version 2018.5.10 <br />
 New 新增了网络RNN与LSTM <br />
 New 新增了保存模型的功能 <br />
 Chg 更改了项目名称 <br />
+Chg 更改了部分代码，提高运算效率 <br />
 Chg 改写了网络的feed部分，现在所有网络共用训练与测试的函数 <br />
 Fix 路径创建不成功的Bug <br />
-Info sSAE和sDAE的Code实现可能不太好，劝慎用 <慎重使用> <br />
+Info sSAE和sDAE的Code实现可能不太好 <慎重使用> <br />
 # 测试结果
 用于minst数据集分类，运行得到正确率可达98.78%； <br />
 # 参考资料
@@ -28,3 +29,4 @@ Tensorboard：https://blog.csdn.net/sinat_33761963/article/details/62433234 <br 
 # My blog
 知乎：https://www.zhihu.com/people/fu-zi-36-41/posts <br />
 CSDN：https://blog.csdn.net/fuzimango/article/list/ <br />
+p.s.：有Bug请向我反馈，欢迎加Q交流 <br />
