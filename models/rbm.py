@@ -4,12 +4,12 @@ import numpy as np
 import sys
 sys.path.append("../base")
 from model import Model
-from base_func import Summaries
+from base_func import act_func,Summaries
 
 class RBM(Model):
     def __init__(self,
                  name='rbm',
-                 rbm_v_type='bin',
+                 units_type=['gauss','bin'],
                  rbm_struct=[784,100],
                  rbm_epochs=10,
                  batch_size=32,
@@ -17,14 +17,23 @@ class RBM(Model):
                  rbm_lr=1e-3):
         Model.__init__(self,name)
         self.name=name
-        self.rbm_v_type=rbm_v_type
+        self.units_type=units_type
         self.n_v = rbm_struct[0]
         self.n_h = rbm_struct[1]
         self.epochs = rbm_epochs
         self.batch_size = batch_size
         self.cd_k = cd_k
         self.lr = rbm_lr
-         
+        self.decay_lr= True
+        
+        def func(name):
+            if name=='bin': return act_func('sigmoid')
+            elif name=='gauss': return act_func('affine')
+            elif name=='g2': return act_func('gauss')
+        
+        self.h_func=func(self.units_type[1])
+        self.v_func=func(self.units_type[0])
+            
         with tf.name_scope(self.name):
             self.build_model()
             
@@ -87,17 +96,14 @@ class RBM(Model):
 
     def transform(self,v):
         z = tf.add(tf.matmul(v, self.W), self.bh)
-        prob_h=tf.nn.sigmoid(z,name='prob_h') # compute
-        state_h= tf.to_float(tf.random_uniform([tf.shape(v)[0],self.n_h])<prob_h,name='state_h') # sample
-#        prob_h=z
-#        state_h=tf.add(prob_h, tf.random_uniform([tf.shape(v)[0],self.n_h]))
+        prob_h=self.h_func(z) # compute
+        if self.units_type[1]=='gauss':
+            state_h= prob_h
+        else:
+            state_h= tf.to_float(tf.random_uniform([tf.shape(v)[0],self.n_h])<prob_h,name='state_h') # sample
         return prob_h,state_h
     
     def reconstruction(self,h):
-        if self.rbm_v_type=='bin':
-            z = tf.add(tf.matmul(h, tf.transpose(self.W)), self.bv)
-            prob_v=tf.nn.sigmoid(z,name='prob_v')
-        else:
-            z = tf.add(tf.matmul(h, tf.transpose(self.W)), self.bv,name='prob_v')
-            prob_v=z
+        z = tf.add(tf.matmul(h, tf.transpose(self.W)), self.bv)
+        prob_v=self.v_func(z)
         return prob_v
