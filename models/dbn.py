@@ -20,7 +20,7 @@ class DBN(Model):
                  epochs=100,
                  batch_size=32,
                  dropout=0.3,
-                 rbm_v_type='gauss',
+                 units_type=['gauss','bin'],
                  rbm_lr=1e-3,
                  rbm_epochs=30,
                  cd_k=1):
@@ -39,7 +39,7 @@ class DBN(Model):
         
         self.dbm_struct = struct[:-1]
         
-        self.rbm_v_type=rbm_v_type
+        self.units_type = units_type
         self.cd_k = cd_k
         self.rbm_lr = rbm_lr
         self.rbm_epochs = rbm_epochs
@@ -68,13 +68,15 @@ class DBN(Model):
         """
         Pre-training
         """
-        # 构建dbm
-        self.pt_model = DBM(rbm_v_type=self.rbm_v_type,
-                       dbm_struct=self.dbm_struct,
-                       rbm_epochs=self.rbm_epochs,
-                       batch_size=self.batch_size,
-                       cd_k=self.cd_k,
-                       rbm_lr=self.rbm_lr)      
+        if self.cd_k!=0: # cd_k=0时，不进行预训练，相当于一个DNN
+            # 构建dbm
+            self.pt_model = DBM(
+                            units_type=self.units_type,
+                            dbm_struct=self.dbm_struct,
+                            rbm_epochs=self.rbm_epochs,
+                            batch_size=self.batch_size,
+                            cd_k=self.cd_k,
+                            rbm_lr=self.rbm_lr)      
         """
         Fine-tuning
         """
@@ -89,42 +91,42 @@ class DBN(Model):
             # 构建dbn
             # 构建权值列表（dbn结构）
             self.parameter_list = list()
-            for pt in self.pt_model.pt_list:
-                self.parameter_list.append(pt.W)
-                self.parameter_list.append(pt.bh)
-            self.parameter_list.append(self.out_W)
-            self.parameter_list.append(self.out_b)
+            if self.cd_k!=0:
+                for pt in self.pt_model.pt_list:
+                    self.parameter_list.append([pt.W,pt.bh])
+            else:
+                for i in range(len(self.struct)-2):
+                    W = tf.Variable(tf.truncated_normal(shape=[self.struct[i], self.struct[i+1]], stddev=np.sqrt(2 / (self.struct[i] + self.struct[i+1]))), name='W'+str(i+1))
+                    b = tf.Variable(tf.constant(0.0,shape=[self.struct[i+1]]),name='b'+str(i+1))
+                    self.parameter_list.append([W,b])
+                    
+            self.parameter_list.append([self.out_W,self.out_b])
             
             # 构建训练步
             self.pred=self.transform(self.input_data)
             self.build_train_step()
             
             #****************** 记录 ******************
-            cnt=2
             for i in range(len(self.parameter_list)):
-                if i%cnt!=0:continue
-                k=int(i/cnt+1)
-                Summaries.scalars_histogram('_W'+str(k),self.parameter_list[i])
-                Summaries.scalars_histogram('_b'+str(k),self.parameter_list[i+1])
+                Summaries.scalars_histogram('_W'+str(i),self.parameter_list[i][0])
+                Summaries.scalars_histogram('_b'+str(i),self.parameter_list[i][1])
             tf.summary.scalar('loss',self.loss)
             tf.summary.scalar('accuracy',self.accuracy)
             self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'DBN'))
             #******************************************
             
     def transform(self,data_x):
-        cnt=2
         # 得到网络输出值
         next_data = data_x # 这个next_data是tf变量
         for i in range(len(self.parameter_list)):
-            if i%cnt!=0:continue
-            W=self.parameter_list[i]
-            b=self.parameter_list[i+1]
+            W=self.parameter_list[i][0]
+            b=self.parameter_list[i][1]
             
             if self.dropout>0:
                 next_data = tf.nn.dropout(next_data, self.keep_prob)
                 
             z = tf.add(tf.matmul(next_data, W), b)
-            if i==len(self.parameter_list)-cnt:
+            if i==len(self.parameter_list)-1:
                 next_data=self.output_act(z)
             else:
                 next_data=self.hidden_act(z)
