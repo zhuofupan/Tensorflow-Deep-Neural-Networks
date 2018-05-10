@@ -32,20 +32,20 @@ select_case = 1
 
 if select_case==1:
     classifier = DBN(
-                 hidden_act_func='sigmoid',
+                 hidden_act_func='relu',
                  output_act_func='softmax',
                  loss_func='cross_entropy', # gauss 激活函数会自动转换为 mse 损失函数
-                 struct=[x_dim, 100, 50, y_dim],
+                 struct=[x_dim, 200, 100, y_dim],
                  lr=1e-3,
                  momentum=0.5,
                  use_for='classification',
-                 bp_algorithm='adam',
+                 bp_algorithm='rmsp',
                  epochs=100,
                  batch_size=32,
-                 dropout=0.3,
-                 rbm_v_type='bin',
+                 dropout=0.15,
+                 units_type=['gauss','bin'],
                  rbm_lr=1e-3,
-                 rbm_epochs=24,
+                 rbm_epochs=16,
                  cd_k=1)
 if select_case==2:
     classifier = CNN(
@@ -65,11 +65,22 @@ if select_case==2:
 
 Initializer.sess_init_all(sess) # 初始化变量
 summ = Summaries(os.path.basename(__file__),sess=sess)
-classifier.train_model(train_X=X_train, train_Y=Y_train,sess=sess,summ=summ)
+classifier.train_model(train_X = X_train, 
+                       train_Y = Y_train, 
+                       val_X = X_test, 
+                       val_Y = Y_test,
+                       sess=sess,
+                       summ=summ,
+                       load_saver='')
 
 # Test
 print("[Test data...]")
-Y_pred = classifier.test_model(X_test, Y_test,sess)
+print('[Average Accuracy]: %f' % classifier.best_acc)
+
+label_distribution=classifier.label_distribution
+record_array=classifier.record_array
+np.savetxt("../saver/Label_distribution.csv", classifier.label_distribution, fmt='%.4f',delimiter=",")
+np.savetxt("../saver/Loss_and_Acc.csv", classifier.record_array, fmt='%.4f',delimiter=",")
 
 summ.train_writer.close()
 sess.close()
