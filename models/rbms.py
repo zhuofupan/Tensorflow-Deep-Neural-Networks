@@ -5,12 +5,12 @@ from rbm import RBM
 class DBM(object):
     def __init__(self,
                  dbm_struct=[784, 100, 100],
-                 rbm_v_type='bin',
+                 units_type=['gauss','bin'],
                  rbm_lr=1e-3,
                  rbm_epochs=10,
                  batch_size=32,
                  cd_k=1):
-        self.rbm_v_type=rbm_v_type
+        self.units_type = units_type
         self.dbm_struct = dbm_struct
         self.rbm_epochs = rbm_epochs
         self.batch_size = batch_size
@@ -33,7 +33,7 @@ class DBM(object):
             n_h = self.dbm_struct[i+1]
             name='rbm-'+ str(i + 1)
             rbm = RBM(name=name,
-                      rbm_v_type=self.rbm_v_type,
+                      units_type=self.units_type,
                       rbm_struct=[n_v,n_h],
                       rbm_epochs=self.rbm_epochs,
                       batch_size=self.batch_size,
