@@ -1,0 +1,9 @@
+Version 2018.6.1 
+Chg 重写了SAE，现在可以放心使用了 
+Chg 新增了绘制训练曲线图，预测标签分布图，权值图的功能 
+Chg 用户可以通过model.py文件控制一些功能的开关： 
+·→ tensorboard(self.tbd) 
+·→ saver(self.sav) 
+·→ 显示曲线(self.show_pic) 
+·→ 保存权值图(self.plot_para) 
+Chg 代码的整体运行函数run_sess放到了base_func.py 
