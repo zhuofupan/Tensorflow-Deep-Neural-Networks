@@ -9,7 +9,7 @@ Stacked Denoising Autoencoders (sDAE) <br />
 # 版本信息
 Version 2018.6.1 <br />
 Chg 重写了SAE，现在可以放心使用了 <br />
-Chg 新增了绘制训练曲线，预测标签分布图，权值图的功能 <br />
+Chg 新增了绘制训练曲线图，预测标签分布图，权值图的功能 <br />
 Chg 用户可以通过model.py文件控制tensorboard，saver，plot的开关 <br />
 Chg 代码的整体运行函数run_sess放到了base_func.py <br />
 # 测试结果
