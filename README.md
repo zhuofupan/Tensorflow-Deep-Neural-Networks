@@ -11,10 +11,10 @@ Version 2018.6.1 <br />
 Chg 重写了SAE，现在可以放心使用了 <br />
 Chg 新增了绘制训练曲线图，预测标签分布图，权值图的功能 <br />
 Chg 用户可以通过model.py文件控制一些功能的开关： <br />
-·→ tensorboard(self.tbd) <br />
-·→ saver(self.sav) <br />
-·→ 显示曲线(self.show_pic) <br />
-·→ 保存权值图(self.plot_para) <br />
+-→ tensorboard(self.tbd) <br />
+-→ saver(self.sav) <br />
+-→ 显示曲线(self.show_pic) <br />
+-→ 保存权值图(self.plot_para) <br />
 Chg 代码的整体运行函数run_sess放到了base_func.py <br />
 # 测试结果
 用于minst数据集分类，运行得到正确率可达98.78%； <br />
