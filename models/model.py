@@ -5,29 +5,54 @@ import os
 
 import sys
 sys.path.append("../base")
-from base_func import Batch,Loss,Accuracy,Optimization
+from base_func import Batch,Loss,Accuracy,Optimization,plot_para_pic
+import matplotlib.pyplot as plt
 
 class Model(object):
     def __init__(self,name):
+        """
+        user control
+        """
+        self.tbd = False
+        self.sav = False
+        self.show_pic =False
+        self.plot_para=True
+        
+        # name
         self.name = name
+        # record best acc
+        self.ave_acc = 0
+        self.acc_list = []
+        
+        # for unsupervised training
         self.momentum = 0.5
         self.output_act_func='softmax'
         self.loss_func='mse'
-        self.bp_algorithm = 'sgd'
-        self.best_acc = 0
+        self.bp_algorithm = 'rmsp'
+        # for build train step
         self.pt_model = None
         self.decay_lr = False
         self.loss = None
         self.accuracy = None
         self.train_batch = None
+        # for summary (tensorboard)
         self.merge = None
+        # for plot
+        self.pt_img =None
+        # 用于预测
+        self.pred_Y=None
+        # 用于分类
+        self.train_curve=None
+        self.label_fig=None
+        self.label_tag=None
     
     def build_train_step(self):
         # 损失
         if self.loss is None:
             _loss=Loss(label_data=self.label_data,
-                   pred=self.pred,
-                   output_act_func=self.output_act_func)
+                       pred=self.pred,
+                       logist=self.logist,
+                       output_act_func=self.output_act_func)
             self.loss = _loss.get_loss_func(self.loss_func) # + 0.5*tf.matrix_determinant(tf.matmul(self.out_W,tf.transpose(self.out_W)))
         # 正确率
         if self.accuracy is None:
@@ -43,10 +68,17 @@ class Model(object):
                 self.r = self.lr
             else: 
                 self.global_step =  tf.Variable(0, trainable=False) # minimize 中会对 global_step 自加 1
-                self.r = tf.train.exponential_decay(learning_rate=self.lr, global_step=self.global_step, decay_steps=100, decay_rate=0.96, staircase=True)
+                self.r = tf.train.exponential_decay(learning_rate=self.lr, 
+                                                    global_step=self.global_step, 
+                                                    decay_steps=100, 
+                                                    decay_rate=0.96, 
+                                                    staircase=True)
+#                self.global_step =  None
+#                self.r = self.lr
     
             self._optimization=Optimization(r=self.r,momentum=self.momentum)
-            self.train_batch=self._optimization.trainer(algorithm=self.bp_algorithm).minimize(self.loss,global_step=self.global_step)
+            self.train_batch=self._optimization.trainer(
+                    algorithm=self.bp_algorithm).minimize(self.loss,global_step=self.global_step)
         
     def train_model(self,train_X,train_Y=None,val_X=None,val_Y=None,sess=None,summ=None,load_saver=''):
         pt_save_path='../saver/'+self.name+'/pre-train'
@@ -67,9 +99,12 @@ class Model(object):
         elif self.pt_model is not None:
             # 开始预训练
             print("Start Pre-training...")
-            self.pt_model.train_model(train_X=train_X,sess=sess,summ=summ)
-            print("Save Pre-trained model...")
-            saver.save(sess,pt_save_path+'/pre-train.ckpt')
+            self.pt_model.train_model(train_X=train_X,train_Y=train_Y,sess=sess,summ=summ)
+            if self.sav:
+                print("Save Pre-trained model...")
+                saver.save(sess,pt_save_path+'/pre-train.ckpt')
+            if self.plot_para:
+                self.pt_img = sess.run(self.pt_model.parameter_list)
         # 开始微调
         print("Start Fine-tuning...")
         _data=Batch(images=train_X,
@@ -77,7 +112,9 @@ class Model(object):
                     batch_size=self.batch_size)
         
         b = int(train_X.shape[0]/self.batch_size)
-        self.record_array=np.zeros((self.epochs,3))
+        self.train_curve=np.zeros((self.epochs,3))
+        self.label_tag=val_Y
+        
         # 迭代次数
         for i in range(self.epochs):
             sum_loss=0; sum_acc=0
@@ -90,22 +127,36 @@ class Model(object):
                 sum_loss = sum_loss + loss; sum_acc= sum_acc +acc
                 
             #**************** 写入 ******************
-            summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.label_data: batch_y,self.keep_prob: 1-self.dropout})
-            summ.train_writer.add_summary(summary, i)
+            if self.tbd:
+                summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.label_data: batch_y,self.keep_prob: 1-self.dropout})
+                summ.train_writer.add_summary(summary, i)
             #****************************************
             loss = sum_loss/b; acc = sum_acc/b
-            print('>>> epoch = {} , loss = {:.4} , accuracy = {:.4}'.format(i+1,loss,acc))
-            self.record_array[i][0]=loss
-            self.record_array[i][1]=acc
-            if val_X is not None:
-                val_acc=self.validation_model(val_X,val_Y,sess)
-                print('    >>> validation accuracy = {:.4}'.format(val_acc))
-                self.record_array[i][2]=val_acc
-                           
-        print("Save model...")
-        saver.save(sess,ft_save_path+'/fine-tune.ckpt')
+            
+            self.train_curve[i][0]=loss
+            if self.use_for=='classification':
+                self.train_curve[i][1]=acc
+                print('>>> epoch = {} , loss = {:.4} , accuracy = {:.4}'.format(i+1,loss,acc))
+                if val_X is not None:
+                    val_acc=self.validation_classification_model(val_X,val_Y,sess)
+                    print('    >>> test accuracy = {:.4}'.format(val_acc))
+                    self.train_curve[i][2]=val_acc
+            else:
+                print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
+                    
+        if self.use_for=='prediction':
+            mse,self.pred_Y = self.test_model(val_X,val_Y,sess)
+            self.test_Y = val_Y
+            self.mse=mse
+        
+        if self.sav:                   
+            print("Save model...")
+            saver.save(sess,ft_save_path+'/fine-tune.ckpt')
+        if self.plot_para:
+            self.img = sess.run(self.parameter_list)
+            plot_para_pic(self.pt_img,self.img,name=self.name)
     
-    def unsupervised_train_model(self,train_X,sess,summ):
+    def unsupervised_train_model(self,train_X,train_Y,sess,summ):
         _data=Batch(images=train_X,
                     labels=None,
                     batch_size=self.batch_size)
@@ -124,8 +175,9 @@ class Model(object):
                 sum_loss = sum_loss + loss
     
             #**************** 写入 ******************
-            summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.label_data: batch_x})
-            summ.train_writer.add_summary(summary, i)
+            if self.tbd:
+                summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.label_data: batch_x})
+                summ.train_writer.add_summary(summary, i)
             #****************************************
             loss = sum_loss/b
             print('>>> epoch = {} , loss = {:.4}'.format(i+1,loss))
@@ -136,64 +188,118 @@ class Model(object):
                     self.input_data: test_X,
                     self.label_data: test_Y,
                     self.keep_prob: 1.0})
-            print('[Accuracy]: %f' % acc)
             return acc,pred_y
         else:
             mse,pred_y=sess.run([self.loss,self.pred],feed_dict={
                     self.input_data: test_X,
                     self.label_data: test_Y,
                     self.keep_prob: 1.0})
-            print('[MSE]: %f' % mse)
             return mse,pred_y
         
-    def validation_model(self,val_X,val_Y,sess):
-        if type(val_X)==list: # TE 数据
-            n_class = len(val_X)
-            acc=np.zeros(n_class)
-            pred_list=list()
-            for i in range(n_class):
-                if i==3 or i==9 or i==15: continue
-                acc[i],pred=sess.run([self.accuracy,self.pred],feed_dict={
-                        self.input_data: val_X[i],
-                        self.label_data: val_Y[i],
-                        self.keep_prob: 1.0})
-                pred_list.append(pred)
-            average_acc = np.sum(acc)/19
+    def validation_classification_model(self,val_X,val_Y,sess):
+        n_class = val_Y.shape[1]
+        
+        acc,pred=self.test_model(val_X,val_Y,sess)
+        
+        if acc > self.ave_acc:
+            self.ave_acc = acc
+            pre_lab=np.argmax(pred,axis=1)
+            real_lab=np.argmax(val_Y,axis=1)
+            self.label_fig=pre_lab
+            n_sample = pre_lab.shape[0]
             
-            if average_acc > self.best_acc:
-                self.best_acc = average_acc
-                self.best_acc_array = acc
+            label_cnt=np.zeros((n_class,n_class))
+            for i in range(n_sample):
+                # 第 real_lab[i] 号分类 被 分到了 第 pre_lab[i] 号分类
+                label_cnt[pre_lab[i]][real_lab[i]]=label_cnt[pre_lab[i]][real_lab[i]]+1
+            sum_label = np.sum(label_cnt,axis=0)
+            label_cnt = label_cnt /sum_label
+            self.label_distribution = label_cnt
+            self.acc_list = np.diag(label_cnt)
+        return acc
+        
+    def show_result(self,figname):
+        if self.use_for=='classification':
+            for i in range(len(self.acc_list)):
+                print(">>>Test fault {}:".format(i))
+                print('[Accuracy]: %f' % self.acc_list[i])
+            print('[Average Accuracy]: %f' % self.ave_acc)
+            self.plot_curve(figname) # 显示训练曲线
+            self.plot_label_distribution() # 显示预测分布
+            return self.label_distribution
+        else:
+            print('[MSE]: %f' % self.mse)
+            self.plot_curve(figname) # 显示预测曲线
+    
+    def plot_curve(self,figname):
+            fig = plt.figure(figsize=[32,18])
+            plt.style.use('classic')
+            if self.use_for=='classification':
+                n = self.train_curve.shape[0]
+                x = range(1,n+1)
+                ax1 = fig.add_subplot(111)
+                ax1.plot(x, self.train_curve[:,0],color='r',label='loss')
+                ax1.set_ylabel('$Loss$')
+                ax1.set_title("Training Curve")
+                ax1.set_xlabel('$Epochs$')
+                ax1.legend(loc='upper left')
                 
-                label_cnt=np.zeros((n_class,19))
-                for i,pred in enumerate(pred_list):
-                    label=np.argmax(pred,axis=1)
-                    n_sample = label.shape[0]
-                    for j in range(n_sample):
-                        # 第 i 号分类 被 分到了 第 label[j] 号分类
-                        label_cnt[label[j]][i]=label_cnt[label[j]][i]+1/n_sample
-                self.label_distribution = label_cnt
-                
-            return average_acc
-        else: # 手写识别
-            n_class = val_Y.shape[1]
+                ax2 = ax1.twinx()  # this is the important function
+                ax2.plot(x, self.train_curve[:,1],color='g',label='trian_acc')
+                ax2.plot(x, self.train_curve[:,2],color='b',label='test_acc')
+                ax2.set_ylabel('$Accuracy$')
+                ax2.legend(loc='upper right')
+            else:
+                n = self.pred_Y.shape[0]
+                x = range(1,n+1)
+                ax1 = fig.add_subplot(111)
+                ax1.plot(x, self.test_Y,color='r',label='test_Y')
+                ax1.plot(x, self.pred_Y,color='g',label='pred_Y')
+                ax1.set_title("Prediction Curve")
+                ax1.set_xlabel('$point$')
+                ax1.set_ylabel('$y$')
+                ax1.legend(loc='upper right')
             
-            acc,pred=sess.run([self.accuracy,self.pred],feed_dict={
-                    self.input_data: val_X,
-                    self.label_data: val_Y,
-                    self.keep_prob: 1.0})
-            
-            if acc > self.best_acc:
-                self.best_acc = acc
-                pre_lab=np.argmax(pred,axis=1)
-                real_lab=np.argmax(val_Y,axis=1)
-                n_sample = pre_lab.shape[0]
-                
-                label_cnt=np.zeros((n_class,n_class))
-                for i in range(n_sample):
-                    # 第 real_lab[i] 号分类 被 分到了 第 pre_lab[i] 号分类
-                    label_cnt[pre_lab[i]][real_lab[i]]=label_cnt[pre_lab[i]][real_lab[i]]+1
-                sum_label = np.sum(label_cnt,axis=0)
-                label_cnt = label_cnt /sum_label
-                self.label_distribution = label_cnt
-                
-            return acc
+            if not os.path.exists('img'): os.makedirs('img')
+            plt.savefig('img/'+figname+'.png',bbox_inches='tight')
+            if self.show_pic: plt.show()
+            plt.close(fig)
+        
+    def save_result(self):
+        self.acc_list=list(self.acc_list)
+        self.acc_list.append(self.ave_acc)
+        np.savetxt("../saver/acc_list.csv", self.acc_list, fmt='%.4f',delimiter=",")
+        np.savetxt("../saver/label_distribution.csv", self.label_distribution, fmt='%.4f',delimiter=",")
+        np.savetxt("../saver/loss_and_acc.csv", self.train_curve, fmt='%.4f',delimiter=",")
+    
+    def plot_label_distribution(self):
+        import warnings
+        import matplotlib.cbook
+        warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+        real_label = None
+        pred_label = self.label_fig
+        c = self.label_tag.shape[1] # 类数
+        real_label = np.argmax(self.label_tag,axis=1)
+        n = pred_label.shape[0] # 预测样本总数
+        
+        x = np.asarray(range(1,n+1))
+        real_label = real_label.reshape(-1,)
+        pred_label = pred_label.reshape(-1,)
+
+        fig = plt.figure(figsize=[32,18])
+        plt.style.use('ggplot')
+        
+        plt.yticks(range(c))
+        
+        ax1 = fig.add_subplot(111)
+        ax1.scatter(x, real_label,alpha=0.75,color='none', edgecolor='red', s=20,label='test_label')
+        ax1.scatter(x, pred_label,alpha=0.75,color='none', edgecolor='blue', s=20,label='pred_label')
+        ax1.set_title("Label Distribution")
+        ax1.set_xlabel('$point$')
+        ax1.set_ylabel('$label$')
+        ax1.legend(loc='upper right')
+        
+        if not os.path.exists('img'): os.makedirs('img')
+        plt.savefig('img/label_distibution.png',bbox_inches='tight')
+        if self.show_pic: plt.show()
+        plt.close(fig)

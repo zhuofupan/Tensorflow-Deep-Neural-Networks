@@ -1,16 +1,16 @@
 import tensorflow as tf
-tf.reset_default_graph()
-
 import numpy as np
 np.random.seed(1337)  # for reproducibility
 
-import sys
 import os
+import sys
 sys.path.append("../models")
 sys.path.append("../base")
+filename = os.path.basename(__file__)
+
 from dbn import DBN
 from cnn import CNN
-from base_func import Initializer,Summaries
+from base_func import run_sess
 from tensorflow.examples.tutorials.mnist import input_data
 
 # Loading dataset
@@ -18,35 +18,36 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets('../dataset/MNIST_data', one_hot=True)
 
 # Splitting data
-X_train, Y_train, X_test, Y_test = mnist.train.images,mnist.train.labels,mnist.test.images , mnist.test.labels
+datasets = [mnist.train.images,mnist.train.labels,mnist.test.images , mnist.test.labels]
 
 #X_train, X_test = X_train[::100], X_test[::100]
 #Y_train, Y_test = Y_train[::100], Y_test[::100]
-x_dim=X_train.shape[1] 
-y_dim=Y_train.shape[1] 
+x_dim=datasets[0].shape[1] 
+y_dim=datasets[1].shape[1] 
 p_dim=int(np.sqrt(x_dim))
 
-sess = tf.Session()
+tf.reset_default_graph()
 # Training
 select_case = 1
 
 if select_case==1:
     classifier = DBN(
-                 hidden_act_func='relu',
+                 hidden_act_func='sigmoid',
                  output_act_func='softmax',
                  loss_func='cross_entropy', # gauss 激活函数会自动转换为 mse 损失函数
-                 struct=[x_dim, 200, 100, y_dim],
+                 struct=[x_dim, 400, 200, 100, y_dim],
                  lr=1e-3,
                  momentum=0.5,
                  use_for='classification',
                  bp_algorithm='rmsp',
-                 epochs=100,
+                 epochs=30,
                  batch_size=32,
-                 dropout=0.1,
+                 dropout=0.12,
                  units_type=['gauss','bin'],
                  rbm_lr=1e-3,
                  rbm_epochs=16,
-                 cd_k=1)
+                 cd_k=1,
+                 pre_train=True)
 if select_case==2:
     classifier = CNN(
                  output_act_func='softmax',
@@ -63,24 +64,5 @@ if select_case==2:
                  batch_size=32,
                  dropout=0.2)
 
-Initializer.sess_init_all(sess) # 初始化变量
-summ = Summaries(os.path.basename(__file__),sess=sess)
-classifier.train_model(train_X = X_train, 
-                       train_Y = Y_train, 
-                       val_X = X_test, 
-                       val_Y = Y_test,
-                       sess=sess,
-                       summ=summ,
-                       load_saver='')
-
-# Test
-print("[Test data...]")
-print('[Average Accuracy]: %f' % classifier.best_acc)
-
-label_distribution=classifier.label_distribution
-record_array=classifier.record_array
-np.savetxt("../saver/Label_distribution.csv", classifier.label_distribution, fmt='%.4f',delimiter=",")
-np.savetxt("../saver/Loss_and_Acc.csv", classifier.record_array, fmt='%.4f',delimiter=",")
-
-summ.train_writer.close()
-sess.close()
+run_sess(classifier,datasets,filename,load_saver='')
+label_distribution = classifier.label_distribution

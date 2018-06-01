@@ -29,7 +29,7 @@ class RBM(Model):
         def func(name):
             if name=='bin': return act_func('sigmoid')
             elif name=='gauss': return act_func('affine')
-            elif name=='g2': return act_func('gauss')
+            elif name=='tanh': return act_func('tanh')
         
         self.h_func=func(self.units_type[1])
         self.v_func=func(self.units_type[0])
@@ -46,15 +46,17 @@ class RBM(Model):
         print(self.name + ':')
         print(self.__dict__)
         # feed 变量
-        self.input_data = tf.placeholder(tf.float32, [None, self.n_v]) # N等于batch_size（训练）或_num_examples（测试）
-        self.label_data = tf.placeholder(tf.float32, [None, self.n_v])
+        self.input_data = tf.placeholder(tf.float32, [None, self.n_v],name='X') # N等于batch_size（训练）或_num_examples（测试）
+        self.label_data = tf.placeholder(tf.float32, [None, self.n_v],name='recon_X')
         # 权值 变量（初始化）
         """
         tf.truncated_normal(shape=[self.n_v, self.n_h], stddev = np.sqrt(2 / (self.n_v + self.n_h)))
         tf.random_uniform(shape=[self.n_v, self.n_h], stddev = np.sqrt(6 / (self.n_v + self.n_h)))        
         tf.glorot_uniform_initializer()
         """
-        self.W = tf.Variable(tf.truncated_normal(shape=[self.n_v, self.n_h], stddev = np.sqrt(2 / (self.n_v + self.n_h))), name='W')
+        self.W = tf.Variable(tf.truncated_normal(shape=[self.n_v, self.n_h], 
+                                                 stddev = np.sqrt(2 / (self.n_v + self.n_h))), 
+                                                 name='W')
         self.bh = tf.Variable(tf.constant(0.0,shape=[self.n_h]),name='bh')
         self.bv = tf.Variable(tf.constant(0.0,shape=[self.n_v]),name='bv')
         with tf.name_scope('CD-k'):
@@ -62,11 +64,12 @@ class RBM(Model):
             v0=self.input_data # v0
             h0,s_h0=self.transform(v0) # h0
             # vk,hk
-            vk=self.reconstruction(s_h0) # v1
+            logist,vk=self.reconstruction(s_h0) # v1
             for k in range(self.cd_k-1):
                 _,s_hk=self.transform(vk) # trans（sample）
-                vk=self.reconstruction(s_hk) # recon（compute）
+                logist,vk=self.reconstruction(s_hk) # recon（compute）
             hk,_=self.transform(vk) # hk
+            self.logist=logist
             self.pred = vk
             
             with tf.name_scope('Gradient_Descent'):
@@ -87,23 +90,25 @@ class RBM(Model):
         self.build_train_step()
         
         #****************** Tensorboard ******************
-        Summaries.scalars_histogram('_W',self.W)
-        Summaries.scalars_histogram('_bh',self.bh)
-        Summaries.scalars_histogram('_bv',self.bv)
-        tf.summary.scalar('loss', self.loss)
-        self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,self.name))
+        if self.tbd:
+            Summaries.scalars_histogram('_W',self.W)
+            Summaries.scalars_histogram('_bh',self.bh)
+            Summaries.scalars_histogram('_bv',self.bv)
+            tf.summary.scalar('loss', self.loss)
+            self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,self.name))
         #*************************************************
 
     def transform(self,v):
-        z = tf.add(tf.matmul(v, self.W), self.bh)
+        z = tf.matmul(v, self.W) + self.bh
         prob_h=self.h_func(z) # compute
         if self.units_type[1]=='gauss':
             state_h= prob_h
         else:
-            state_h= tf.to_float(tf.random_uniform([tf.shape(v)[0],self.n_h])<prob_h,name='state_h') # sample
+            rand_mat = tf.random_uniform(shape=tf.shape(prob_h),minval=0,maxval=1)
+            state_h= tf.to_float(rand_mat<prob_h,name='state_h') # sample
         return prob_h,state_h
     
     def reconstruction(self,h):
-        z = tf.add(tf.matmul(h, tf.transpose(self.W)), self.bv)
-        prob_v=self.v_func(z)
-        return prob_v
+        logist = tf.matmul(h, tf.transpose(self.W)) + self.bv
+        prob_v=self.v_func(logist)
+        return logist,prob_v

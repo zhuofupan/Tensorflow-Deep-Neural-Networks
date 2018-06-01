@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-import tensorflow as tf
 from ae import AE
 
 class unsupervised_sAE(object):
     def __init__(self,
-                 en_func='sigmoid',  # encoder：[sigmoid] 
                  loss_func='mse', # decoder：[sigmoid] with ‘cross_entropy’ | [relu] with ‘mse’
                  ae_type='ae', # ae | dae | sae
+                 act_type=['sigmoid','affine'],
                  noise_type='gs', # Gaussian noise (gs) | Masking noise (mn)
                  beta=0.5,  # 惩罚因子权重（第二项损失的系数）
                  p=0.5, # DAE：样本该维作为噪声的概率 / SAE稀疏性参数：期望的隐层平均活跃度（在训练批次上取平均）
@@ -14,7 +13,7 @@ class unsupervised_sAE(object):
                  ae_epochs=10,
                  batch_size=32,
                  ae_lr=1e-3):
-        self.en_func=en_func
+        self.act_type=act_type
         self.loss_func=loss_func
         self.ae_type = ae_type
         self.noise_type = noise_type
@@ -32,10 +31,9 @@ class unsupervised_sAE(object):
     ######################
     
     def build_model(self):
-        # feed 变量
-        self.input_data = tf.placeholder(tf.float32, [None, self.un_ae_struct[0]]) # N等于_num_examples或batch_size
         # 构建rmbs
         self.pt_list = list()
+        self.parameter_list=list()
         for i in range(len(self.un_ae_struct) -1):
             print('Build AE-{}...'.format(i+1))
             n_x = self.un_ae_struct[i]
@@ -44,7 +42,7 @@ class unsupervised_sAE(object):
             else: ae_type=self.ae_type
             name=ae_type+'-'+ str(i + 1)
             ae = AE(name=name,
-                    en_func=self.en_func,
+                    act_type=self.act_type,
                     loss_func=self.loss_func, # encoder：[sigmoid] || decoder：[sigmoid] with ‘cross_entropy’ | [relu] with ‘mse’
                     ae_type=ae_type, # ae | dae | sae
                     noise_type=self.noise_type, # Gaussian noise (gs) | Masking noise (mn)
@@ -56,12 +54,13 @@ class unsupervised_sAE(object):
                     ae_lr=self.ae_lr)
             # print(ae.__dict__)
             self.pt_list.append(ae) # 加入list
+            self.parameter_list.append([ae.W,ae.bh])
             
-    def train_model(self,train_X,sess,summ):
+    def train_model(self,train_X,train_Y,sess,summ):
         X = train_X 
         for i,ae in enumerate(self.pt_list):
             print('>>> Training AE-{}:'.format(i+1))
             # 训练第i个AE（按batch）
-            ae.unsupervised_train_model(X,sess=sess,summ=summ)
+            ae.unsupervised_train_model(X,train_Y,sess=sess,summ=summ)
             # 得到transform值（train_X）
             X = sess.run(ae.transform(X))

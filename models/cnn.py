@@ -47,23 +47,24 @@ class CNN(Model):
         print('CNN:')
         print(self.__dict__)
         # feed
-        self.input_data = tf.placeholder(tf.float32, [None, self.img_shape[0]*self.img_shape[1]]) # N等于batch_size（训练）或_num_examples（测试）
+        self.input_data = tf.placeholder(tf.float32, [None, self.img_shape[0]*self.img_shape[1]*self.channels[0]]) # N等于batch_size（训练）或_num_examples（测试）
         self.label_data = tf.placeholder(tf.float32, [None, self.channels[-1]]) # N等于batch_size（训练）或_num_examples（测试）
         self.keep_prob = tf.placeholder(tf.float32) 
         # reshape X
         X = tf.reshape(self.input_data, shape=[-1,self.img_shape[0] , self.img_shape[1], self.channels[0]])
         
         # 构建训练步
-        self.pred = self.transform(X)
+        self.logist,self.pred = self.transform(X)
         self.build_train_step()
         
         # Tensorboard
-        for i in range(len(self.W)):
-            Summaries.scalars_histogram('_'+self.W[i].name,self.W[i])
-            Summaries.scalars_histogram('_'+self.b[i].name,self.b[i])
-        tf.summary.scalar('loss',self.loss)
-        tf.summary.scalar('accuracy',self.accuracy)
-        self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'CNN'))
+        if self.tbd:
+            for i in range(len(self.W)):
+                Summaries.scalars_histogram('_W'+str(i+1),self.W[i])
+                Summaries.scalars_histogram('_b'+str(i+1),self.b[i])
+            tf.summary.scalar('loss',self.loss)
+            tf.summary.scalar('accuracy',self.accuracy)
+            self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'CNN'))
         
     def conv2d(self,img, w, b):
         """tf.nn.conv2d
@@ -126,7 +127,8 @@ class CNN(Model):
             z=tf.add(tf.matmul(X,self.W[-1]), self.b[-1])
             
             if i==len(self.channels)-2:
+                logist = z
                 pred = act_func(self.output_act_func)(z) # Relu activation
             else:
                 X = act_func(self.hidden_act_func)(z) # Relu activation 
-        return pred
+        return logist,pred

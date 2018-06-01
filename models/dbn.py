@@ -23,7 +23,8 @@ class DBN(Model):
                  units_type=['gauss','bin'],
                  rbm_lr=1e-3,
                  rbm_epochs=30,
-                 cd_k=1):
+                 cd_k=1,
+                 pre_train=True):
         Model.__init__(self,'DBN')
         self.output_act_func=output_act_func
         self.hidden_act_func=hidden_act_func
@@ -36,20 +37,14 @@ class DBN(Model):
         self.struct = struct
         self.batch_size = batch_size
         self.dropout = dropout
+        self.pre_train=pre_train
         
         self.dbm_struct = struct[:-1]
-        
         self.units_type = units_type
         self.cd_k = cd_k
         self.rbm_lr = rbm_lr
         self.rbm_epochs = rbm_epochs
         
-         
-#        if rbm_v_type=='bin':
-#            self.hidden_act_func='sigmoid'
-#        elif rbm_v_type=='gauss':
-#            self.hidden_act_func='affine'
-            
         if output_act_func=='gauss':
             self.loss_func='mse'
         self.hidden_act=act_func(self.hidden_act_func)
@@ -68,15 +63,15 @@ class DBN(Model):
         """
         Pre-training
         """
-        if self.cd_k!=0: # cd_k=0时，不进行预训练，相当于一个DNN
+        if self.pre_train: # cd_k=0时，不进行预训练，相当于一个DNN
             # 构建dbm
             self.pt_model = DBM(
-                            units_type=self.units_type,
-                            dbm_struct=self.dbm_struct,
-                            rbm_epochs=self.rbm_epochs,
-                            batch_size=self.batch_size,
-                            cd_k=self.cd_k,
-                            rbm_lr=self.rbm_lr)      
+                    units_type=self.units_type,
+                    dbm_struct=self.dbm_struct,
+                    rbm_epochs=self.rbm_epochs,
+                    batch_size=self.batch_size,
+                    cd_k=self.cd_k,
+                    rbm_lr=self.rbm_lr)      
         """
         Fine-tuning
         """
@@ -86,33 +81,38 @@ class DBN(Model):
             self.label_data = tf.placeholder(tf.float32, [None, self.struct[-1]]) # N等于batch_size（训练）或_num_examples（测试）
             self.keep_prob = tf.placeholder(tf.float32) 
             # 权值 变量（初始化）
-            self.out_W = tf.Variable(tf.truncated_normal(shape=[self.struct[-2], self.struct[-1]], stddev=np.sqrt(2 / (self.struct[-2] + self.struct[-1]))), name='W_out')
+            self.out_W = tf.Variable(tf.truncated_normal(shape=[self.struct[-2], self.struct[-1]], 
+                                                         stddev=np.sqrt(2 / (self.struct[-2] + self.struct[-1]))), 
+                                                         name='W_out')
             self.out_b = tf.Variable(tf.constant(0.0,shape=[self.struct[-1]]),name='b_out')
             # 构建dbn
             # 构建权值列表（dbn结构）
             self.parameter_list = list()
-            if self.cd_k!=0:
+            if self.pre_train:
                 for pt in self.pt_model.pt_list:
                     self.parameter_list.append([pt.W,pt.bh])
             else:
                 for i in range(len(self.struct)-2):
-                    W = tf.Variable(tf.truncated_normal(shape=[self.struct[i], self.struct[i+1]], stddev=np.sqrt(2 / (self.struct[i] + self.struct[i+1]))), name='W'+str(i+1))
+                    W = tf.Variable(tf.truncated_normal(shape=[self.struct[i], self.struct[i+1]], 
+                                                        stddev=np.sqrt(2 / (self.struct[i] + self.struct[i+1]))), 
+                                                        name='W'+str(i+1))
                     b = tf.Variable(tf.constant(0.0,shape=[self.struct[i+1]]),name='b'+str(i+1))
                     self.parameter_list.append([W,b])
                     
             self.parameter_list.append([self.out_W,self.out_b])
             
             # 构建训练步
-            self.pred=self.transform(self.input_data)
+            self.logist,self.pred=self.transform(self.input_data)
             self.build_train_step()
             
             #****************** 记录 ******************
-            for i in range(len(self.parameter_list)):
-                Summaries.scalars_histogram('_W'+str(i),self.parameter_list[i][0])
-                Summaries.scalars_histogram('_b'+str(i),self.parameter_list[i][1])
-            tf.summary.scalar('loss',self.loss)
-            tf.summary.scalar('accuracy',self.accuracy)
-            self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'DBN'))
+            if self.tbd:
+                for i in range(len(self.parameter_list)):
+                    Summaries.scalars_histogram('_W'+str(i+1),self.parameter_list[i][0])
+                    Summaries.scalars_histogram('_b'+str(i+1),self.parameter_list[i][1])
+                tf.summary.scalar('loss',self.loss)
+                tf.summary.scalar('accuracy',self.accuracy)
+                self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,self.name))
             #******************************************
             
     def transform(self,data_x):
@@ -124,11 +124,12 @@ class DBN(Model):
             
             if self.dropout>0:
                 next_data = tf.nn.dropout(next_data, self.keep_prob)
-                
+
             z = tf.add(tf.matmul(next_data, W), b)
             if i==len(self.parameter_list)-1:
-                next_data=self.output_act(z)
+                logist=z
+                pred=self.output_act(z)
             else:
                 next_data=self.hidden_act(z)
             
-        return next_data
+        return logist,pred

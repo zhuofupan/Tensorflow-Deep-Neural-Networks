@@ -58,18 +58,19 @@ class RNN(Model):
             X=tf.split(self.input_data,self.width,axis=1)
             
             self.create_variable()
-            self.pred = self.transform(X)
+            self.logist,self.pred = self.transform(X)
             self.build_train_step()
             
             #****************** 记录 ******************
-            for i in range(len(self.depth_parameter)):
-                Summaries.scalars_histogram('_W'+str(i+1),self.depth_parameter[i][0])
-                Summaries.scalars_histogram('_b'+str(i+1),self.depth_parameter[i][1])
-                if i < len(self.depth_parameter)-1:
-                    Summaries.scalars_histogram('_V'+str(i+1),self.width_parameter[i])
-            tf.summary.scalar('loss',self.loss)
-            tf.summary.scalar('accuracy',self.accuracy)
-            self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'RNN'))
+            if self.tbd:
+                for i in range(len(self.depth_parameter)):
+                    Summaries.scalars_histogram('_W'+str(i+1),self.depth_parameter[i][0])
+                    Summaries.scalars_histogram('_b'+str(i+1),self.depth_parameter[i][1])
+                    if i < len(self.depth_parameter)-1:
+                        Summaries.scalars_histogram('_V'+str(i+1),self.width_parameter[i])
+                tf.summary.scalar('loss',self.loss)
+                tf.summary.scalar('accuracy',self.accuracy)
+                self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'RNN'))
             #******************************************
     
     def create_variable(self):
@@ -112,7 +113,7 @@ class RNN(Model):
                 with tf.name_scope('classification'):
                     W=self.depth_parameter[-1][0]
                     b=self.depth_parameter[-1][1]
-                    z = tf.matmul(next_data,W) + b
-                    next_data = self.output_act(z)
-        return next_data
+                    logist = tf.matmul(next_data,W) + b
+                    pred = self.output_act(logist)
+        return logist,pred
       

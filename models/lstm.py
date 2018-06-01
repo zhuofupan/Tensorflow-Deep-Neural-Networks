@@ -59,24 +59,25 @@ class LSTM(Model):
             self.create_variable()
             
             # 构建训练步
-            self.pred = self.transform(X)
+            self.logist,self.pred = self.transform(X)
             self.build_train_step()
             
             #****************** 记录 ******************
-            for i in range(len(self.struct)-2):
-                Summaries.scalars_histogram('_F'+str(i+1),self.F_parameter[i][0])
-                Summaries.scalars_histogram('_I'+str(i+1),self.I_parameter[i][0])
-                Summaries.scalars_histogram('_C'+str(i+1),self.C_parameter[i][0])
-                Summaries.scalars_histogram('_O'+str(i+1),self.O_parameter[i][0])
-                Summaries.scalars_histogram('_bf'+str(i+1),self.F_parameter[i][1])
-                Summaries.scalars_histogram('_bi'+str(i+1),self.I_parameter[i][1])
-                Summaries.scalars_histogram('_bc'+str(i+1),self.C_parameter[i][1])
-                Summaries.scalars_histogram('_bo'+str(i+1),self.O_parameter[i][1])
-            Summaries.scalars_histogram('_W',self.W)
-            Summaries.scalars_histogram('_b',self.b)
-            tf.summary.scalar('loss',self.loss)
-            tf.summary.scalar('accuracy',self.accuracy)
-            self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'LSTM'))
+            if self.tbd:
+                for i in range(len(self.struct)-2):
+                    Summaries.scalars_histogram('_F'+str(i+1),self.F_parameter[i][0])
+                    Summaries.scalars_histogram('_I'+str(i+1),self.I_parameter[i][0])
+                    Summaries.scalars_histogram('_C'+str(i+1),self.C_parameter[i][0])
+                    Summaries.scalars_histogram('_O'+str(i+1),self.O_parameter[i][0])
+                    Summaries.scalars_histogram('_bf'+str(i+1),self.F_parameter[i][1])
+                    Summaries.scalars_histogram('_bi'+str(i+1),self.I_parameter[i][1])
+                    Summaries.scalars_histogram('_bc'+str(i+1),self.C_parameter[i][1])
+                    Summaries.scalars_histogram('_bo'+str(i+1),self.O_parameter[i][1])
+                Summaries.scalars_histogram('_W',self.W)
+                Summaries.scalars_histogram('_b',self.b)
+                tf.summary.scalar('loss',self.loss)
+                tf.summary.scalar('accuracy',self.accuracy)
+                self.merge = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES,'LSTM'))
             #******************************************
     
     def create_variable(self):
@@ -181,6 +182,6 @@ class LSTM(Model):
                     x=self.next_data(x,k,j)       
             if k==self.width-1:
                 with tf.name_scope('classification'):
-                    z = tf.matmul(x,self.W) + self.b
-                    pred = self.output_act(z)
-        return pred
+                    logist = tf.matmul(x,self.W) + self.b
+                    pred = self.output_act(logist)
+        return logist,pred
