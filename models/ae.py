@@ -124,6 +124,8 @@ class AE(Model):
         if self.loss_func=='mse':
             loss_mat=tf.square(y-y_)
         elif self.loss_func=='cross_entropy':
+            y = tf.clip_by_value(y,1e-10, 1.0-1e-10)
+            y_ = tf.clip_by_value(y_,1e-10, 1.0-1e-10)
             if self.de_func=='sigmoid':
                 loss_mat=-y*tf.log(y_)-(1-y)*tf.log(1-y_)
             elif self.de_func=='softmax':
@@ -137,5 +139,7 @@ class AE(Model):
     def sparse_loss(self,h):
         q = tf.reduce_mean(h,axis=0)
         p = tf.constant(self.p, shape=[1,self.n_h])
+        q = tf.clip_by_value(q,1e-10, 1.0-1e-10)
+        p = tf.clip_by_value(p,1e-10, 1.0-1e-10)
         kl=p*tf.log(p/q)+(1-p)*tf.log((1-p)/(1-q))
         return tf.reduce_sum(kl)
