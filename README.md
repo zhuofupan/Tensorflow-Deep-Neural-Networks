@@ -30,4 +30,4 @@ Tensorboard：https://blog.csdn.net/sinat_33761963/article/details/62433234 <br 
 # My blog
 知乎：https://www.zhihu.com/people/fu-zi-36-41/posts <br />
 CSDN：https://blog.csdn.net/fuzimango/article/list/ <br />
-p.s.：有Bug请向我反馈 <br />
+QQ群：640571839 <br />
