@@ -16,6 +16,7 @@ Note 用户可以通过model.py文件控制一些功能的开关： <br />
 ·→  saver(self.sav) <br />
 ·→  显示曲线(self.show_pic) <br />
 ·→  保存权值图(self.plot_para) <br />
+Note 回归是可以实现的，需要设置 use_for = 'prediction' <br />
 # 测试结果
 用于minst数据集分类，运行得到正确率可达98.78%； <br />
 # 参考资料
