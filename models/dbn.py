@@ -47,8 +47,6 @@ class DBN(Model):
         
         if output_act_func=='gauss':
             self.loss_func='mse'
-        self.hidden_act=act_func(self.hidden_act_func)
-        self.output_act=act_func(self.output_act_func)
         
         self.build_model()
         
@@ -128,8 +126,11 @@ class DBN(Model):
             z = tf.add(tf.matmul(next_data, W), b)
             if i==len(self.parameter_list)-1:
                 logist=z
-                pred=self.output_act(z)
+                output_act=act_func(self.output_act_func)
+                pred=output_act(z)
             else:
-                next_data=self.hidden_act(z)
+                hidden_act=act_func(self.hidden_act_func,self.h_act_p)
+                self.h_act_p = np.mod(self.h_act_p + 1, len(self.hidden_act_func))
+                next_data=hidden_act(z)
             
         return logist,pred

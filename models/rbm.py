@@ -47,7 +47,7 @@ class RBM(Model):
         print(self.__dict__)
         # feed 变量
         self.input_data = tf.placeholder(tf.float32, [None, self.n_v],name='X') # N等于batch_size（训练）或_num_examples（测试）
-        self.label_data = tf.placeholder(tf.float32, [None, self.n_v],name='recon_X')
+        self.recon_data = tf.placeholder(tf.float32, [None, self.n_v],name='recon_X')
         # 权值 变量（初始化）
         """
         tf.truncated_normal(shape=[self.n_v, self.n_h], stddev = np.sqrt(2 / (self.n_v + self.n_h)))

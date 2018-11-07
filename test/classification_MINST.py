@@ -10,6 +10,7 @@ filename = os.path.basename(__file__)
 
 from dbn import DBN
 from cnn import CNN
+from sup_sae import supervised_sAE
 from base_func import run_sess
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -28,7 +29,7 @@ p_dim=int(np.sqrt(x_dim))
 
 tf.reset_default_graph()
 # Training
-select_case = 1
+select_case = 3
 
 if select_case==1:
     classifier = DBN(
@@ -40,14 +41,13 @@ if select_case==1:
                  momentum=0.5,
                  use_for='classification',
                  bp_algorithm='rmsp',
-                 epochs=30,
+                 epochs=100,
                  batch_size=32,
                  dropout=0.12,
                  units_type=['gauss','bin'],
                  rbm_lr=1e-3,
                  rbm_epochs=16,
-                 cd_k=1,
-                 pre_train=True)
+                 cd_k=1)
 if select_case==2:
     classifier = CNN(
                  output_act_func='softmax',
@@ -63,6 +63,24 @@ if select_case==2:
                  ksize=[[2,2],[2,2]],
                  batch_size=32,
                  dropout=0.2)
-
+if select_case==3:
+    classifier = supervised_sAE(
+                 output_func='softmax',
+                 hidden_func='sigmoid', 
+                 loss_func='cross_entropy', 
+                 struct=[x_dim, 400, 200, 100, y_dim],
+                 lr=1e-3,
+                 use_for='classification',
+                 epochs=100,
+                 batch_size=32,
+                 dropout=0.12,
+                 ae_type='yae', # ae | dae | sae
+                 act_type=['gauss','affine'],# decoder：[sigmoid] with ‘cross_entropy’ | [affine] with ‘mse’
+                 noise_type='mn', # Gaussian noise (gs) | Masking noise (mn)
+                 beta=0.5, # DAE：噪声损失系数 | SAE：稀疏损失系数
+                 p=0.3, # DAE：样本该维作为噪声的概率 / SAE稀疏性参数：期望的隐层平均活跃度（在训练批次上取平均）
+                 ae_lr=1e-3,
+                 ae_epochs=16,
+                 pre_train=True)
 run_sess(classifier,datasets,filename,load_saver='')
 label_distribution = classifier.label_distribution

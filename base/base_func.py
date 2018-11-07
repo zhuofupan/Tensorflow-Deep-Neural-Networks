@@ -2,7 +2,14 @@
 import tensorflow as tf
 import numpy as np
 import os
-import matplotlib.pyplot as plt
+from matplotlib.ticker import NullFormatter
+from sklearn.preprocessing import MinMaxScaler
+from sklearn import manifold
+from time import time
+
+###########################
+#          批次类          #
+###########################
 
 class Batch(object):
     def __init__(self,
@@ -66,7 +73,13 @@ class Batch(object):
             else:
                 return self._images[start:end]
 
-def act_func(func_name):
+###########################
+#         激活函数         #
+###########################
+
+def act_func(func_name, p = 0):
+    if type(func_name) == list:
+        func_name = func_name[p]
     if func_name=='sigmoid':   # S(z) = 1/(1+exp(-z)) ∈ (0,1)
         return tf.nn.sigmoid
     elif func_name=='softmax': # s(z) = S(z)/∑S(z) ∈ (0,1)
@@ -96,7 +109,8 @@ def act_func(func_name):
             mean,variance=tf.nn.moments(z,axes=0)
             return (z-mean)/variance
         return standardization
-
+    
+"""
 def np_func(func_name):
     if func_name=='standardization': # 0均值1方差化
         def standardization(z):
@@ -116,6 +130,11 @@ def BN(var,z,gamma,beta):
     z=(z-mean)/stddev
     z=gamma*z+beta
     return z
+"""
+
+###########################
+#      变量初始化检测       #
+###########################
 
 def init_rest_var(sess):
     uninit_vars = []
@@ -125,6 +144,10 @@ def init_rest_var(sess):
         except tf.errors.FailedPreconditionError:
             uninit_vars.append(var)
     sess.run(tf.variables_initializer(uninit_vars))  
+
+###########################
+#       tensorboard       #
+###########################
     
 class Summaries(object):
     def __init__(self,
@@ -151,25 +174,33 @@ class Summaries(object):
           # 用直方图记录参数的分布
           tf.summary.histogram('distribution', var)
 
+###########################
+#          损失类          #
+###########################
+
 class Loss(object):
     def __init__(self,
-                 label_data,
+                 label,
                  pred,
                  logist,
                  output_act_func):
-        self.label_data = label_data
+        self.label = label
         self.pred = pred
         self.logist = logist
         self.output_act_func = output_act_func  
         
     def get_loss_func(self,func_name):
-        if func_name=='cross_entropy':
+        if func_name=='cross_entropy': # 注意 logist
             if self.output_act_func=='softmax':
-                return tf.losses.softmax_cross_entropy(self.label_data, self.logist)
+                return tf.losses.softmax_cross_entropy(self.label, self.logist)
             if self.output_act_func=='sigmoid':
-                return tf.losses.sigmoid_cross_entropy(self.label_data, self.logist)
+                return tf.losses.sigmoid_cross_entropy(self.label, self.logist)
         if func_name=='mse':
-            return tf.losses.mean_squared_error(self.label_data, self.pred)
+            return tf.losses.mean_squared_error(self.label, self.pred)
+
+###########################
+#         正确率类         #
+###########################
         
 class Accuracy(object):
     def __init__(self,
@@ -213,15 +244,20 @@ class Optimization(object):
                                                   momentum=self.momentum)
         return optimizer
 
-def plot_para_pic(pt_img,img,name):
+############################
+#           画图           #
+###########################
 
+def plot_para_pic(pt_img,ft_img,name):
+    import matplotlib.pyplot as plt
+    
     plt.style.use('classic')
-    for i in range(len(img)):
-        fsize = np.asarray(img[i][0].shape,dtype=np.float32)
+    for i in range(len(ft_img)):
+        fsize = np.asarray(ft_img[i].shape,dtype=np.float32)
         while fsize[0]>=9*4 or fsize[1]>=16*4: fsize=fsize*0.5
         while fsize[0]<9 or fsize[1]<16: fsize=fsize*2
         
-        if pt_img is not None and i<len(img)-1:
+        if pt_img is not None and i< len(ft_img)-1:
             fig = plt.figure(figsize=[fsize[1]*2,fsize[0]])
             cnt=2
         else:
@@ -231,10 +267,10 @@ def plot_para_pic(pt_img,img,name):
         for k in range(cnt):
             ax = fig.add_subplot(1,cnt,k+1)
             if k==0: 
-                data = img[i][0]
+                data = ft_img[i]
                 ax.set_title("Fine-tuned")
             else: 
-                data = pt_img[i][0]
+                data = pt_img[i]
                 ax.set_title("Pre-trained")
             """
             cmap 主题:
@@ -254,26 +290,70 @@ def plot_para_pic(pt_img,img,name):
         cbar_ax = fig.add_axes([0.95, 0.15, 0.05, 0.7])
         fig.colorbar(im, cax=cbar_ax)
         
-        if not os.path.exists('img'): os.makedirs('img')
-        plt.savefig('img/'+name+'_layer_'+str(i+1)+'.png',bbox_inches='tight')
+        if not os.path.exists('../saver/img'): os.makedirs('../saver/img')
+        plt.savefig('../saver/img/'+name+'_layer_'+str(i+1)+'.png',bbox_inches='tight')
         plt.close(fig)
+
+def tSNE_2d(X=None,y=None,title=None):
+    import matplotlib.pyplot as plt
+    
+    plt.style.use('default')
+    print('Start t-SNE...')
+    X = MinMaxScaler().fit_transform(X)
+    if len(y.shape)>1:
+        y = np.array(np.argmax(y,axis=1).reshape(-1, 1),dtype=np.float32)
+    color = MinMaxScaler().fit_transform(y).reshape(-1,)
+    t0 = time()
+    Y = manifold.TSNE(n_components=2, init='pca', random_state=0).fit_transform(X)
+
+    t1 = time()
+    print("t-SNE: %.2g sec" % (t1 - t0))
+    
+    fig = plt.figure(figsize=[32,18])
+    ax = fig.add_subplot(111)
+    plt.scatter(Y[:, 0], Y[:, 1], c=color, cmap=plt.cm.Spectral)
+    if title is not None: plt.title(title)
+    ax.xaxis.set_major_formatter(NullFormatter())
+    ax.yaxis.set_major_formatter(NullFormatter())
+    plt.axis('tight')
+    if not os.path.exists('../saver/img'): os.makedirs('../saver/img')
+    plt.savefig('../saver/img/tSNE_2d.png',bbox_inches='tight')
+    plt.show()
+    plt.close(fig)
+
+
+###########################
+#         运行会话         #
+###########################
     
 def run_sess(classifier,datasets,filename,load_saver=''):
-    X_train, Y_train, X_test, Y_test = datasets
+    
+    if len(datasets) ==4:
+        train_X, train_Y, test_X, test_Y = datasets    
+    elif len(datasets) ==3:
+        train_X, train_Y, test_X, = datasets
+        test_Y = None
+    else:
+        train_X, train_Y = datasets
+        test_X = None
+        test_Y = None
+        
     sess = tf.Session()
     sess.run(tf.global_variables_initializer()) # 初始化变量
+    
     if classifier.tbd: summ = Summaries(filename,sess=sess)
     else: summ=None
-    classifier.train_model(train_X = X_train, 
-                           train_Y = Y_train, 
-                           val_X = X_test, 
-                           val_Y = Y_test,
+    
+    classifier.train_model(train_X = train_X, 
+                           train_Y = train_Y, 
+                           test_X = test_X, 
+                           test_Y = test_Y,
                            sess=sess,
                            summ=summ,
                            load_saver=load_saver)
     
-    classifier.show_result(filename)
-    classifier.save_result()
+    classifier.show_and_save_result(filename)
+    
     if classifier.tbd: 
         summ.train_writer.close()
         

@@ -48,3 +48,4 @@ class DBM(object):
             rbm.unsupervised_train_model(train_X=X,train_Y=train_Y,sess=sess,summ=summ)
             # 得到transform值（train_X）
             X,_ = sess.run(rbm.transform(X))
+        return X

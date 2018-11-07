@@ -38,7 +38,6 @@ class supervised_sAE(Model):
         self.dropout = dropout
         self.pre_train=pre_train
         
-        self.un_ae_struct = struct[:-1]
         self.ae_type = ae_type
         self.act_type=act_type
         self.noise_type = noise_type
@@ -47,9 +46,6 @@ class supervised_sAE(Model):
         self.ae_epochs = ae_epochs
         self.ae_lr = ae_lr
         self.batch_size = batch_size
-        
-        self.hidden_act=act_func(self.hidden_func)
-        self.output_act=act_func(self.output_func)
         
         self.build_model()
         
@@ -73,7 +69,7 @@ class supervised_sAE(Model):
                     noise_type=self.noise_type, # Gaussian noise (gs) | Masking noise (mn)
                     beta=self.beta,  # 惩罚因子权重（第二项损失的系数）
                     p=self.p, # DAE：样本该维作为噪声的概率 / SAE稀疏性参数：期望的隐层平均活跃度（在训练批次上取平均）
-                    un_ae_struct=self.un_ae_struct,
+                    struct=self.struct,
                     ae_epochs=self.ae_epochs,
                     batch_size=self.batch_size,
                     ae_lr=self.ae_lr)
@@ -134,8 +130,11 @@ class supervised_sAE(Model):
             z = tf.add(tf.matmul(next_data, W), b)
             if i==len(self.parameter_list)-1:
                 logist=z
-                pred=self.output_act(logist)
+                output_act=act_func(self.output_func)
+                pred=output_act(logist)
             else:
-                next_data=self.hidden_act(z)
+                hidden_act=act_func(self.hidden_func,self.h_act_p)
+                self.h_act_p = np.mod(self.h_act_p + 1, len(self.hidden_func))
+                next_data=hidden_act(z)
             
         return logist,pred
