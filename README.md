@@ -38,9 +38,9 @@ Chg 回归是可以实现的，需要设置 use_for = 'prediction' <br />
 # 测试结果
 用于minst数据集分类，运行得到正确率可达98.78%；<br />
 用于Urban Sound Classification语音分类，正确率达73.37%；<br />
-https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/ <br />
+Urban Sound Classification: https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/ <br />
 用于Big Mart Sales III预测，RMSE为1152.04 <br />
-https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/ <br />
+Big Mart Sales II: https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/ <br />
 <br />
 跑的结果并不是太高，有更好的方法请赐教。 <br />
 语音分类未尝试语谱法，欢迎做过的和我交流。<br />
