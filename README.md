@@ -40,11 +40,11 @@ Chg 回归是可以实现的，需要设置 use_for = 'prediction' <br />
 用于Urban Sound Classification语音分类，正确率达73.37%；<br />
 用于Big Mart Sales III预测，RMSE为1152.04 <br />
 <br />
-USC: https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/ <br />
-BMS III: https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/ <br />
-<br />
 跑的结果并不是太高，有更好的方法请赐教。 <br />
 语音分类未尝试语谱法，欢迎做过的和我交流。<br />
+<br />
+USC: https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/ <br />
+BMS III: https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/ <br />
 
 # 参考资料
 TF基本函数：http://www.cnblogs.com/wuzhitj/p/6431381.html <br />
