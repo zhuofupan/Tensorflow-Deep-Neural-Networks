@@ -13,7 +13,7 @@ Long Short Term Memory (LSTM) <br />
 pip install tensorflow <br />
 pip install keras <br />
 pip install librosa （用于语音分类，选装） <br />
-pip install --upgrade numpy pandas（有问题一般是由于你的包需要升级了） <br />
+pip install --upgrade numpy pandas（升级包） <br />
 
 # 版本信息
 Note 用户可以通过model.py文件控制一些功能的开关： <br />
