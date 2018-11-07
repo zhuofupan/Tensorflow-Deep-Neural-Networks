@@ -17,12 +17,12 @@ pip install --upgrade numpy pandas（有问题一般是由于你的包需要升�
 
 # 版本信息
 Note 用户可以通过model.py文件控制一些功能的开关： <br />
-·→ self.show_pic =True       # show curve in 'Console'? <br />
-·→ self.tbd = False              # open/close tensorboard <br />
-·→ self.save_model = False  # save/ not save model <br />
-·→ self.plot_para=False       # plot W image or not <br />
-·→ self.save_weight = False # save W matrix or not <br />
-·→ self.do_tSNE = False       # do t-SNE or not <br />
+·→ self.show_pic: show curve in 'Console'? <br />
+·→ self.tbd: open/close tensorboard <br />
+·→ self.save_model: save/ not save model <br />
+·→ self.plot_para: plot W image or not <br />
+·→ self.save_weight: save W matrix or not <br />
+·→ self.do_tSNE: do t-SNE or not <br />
 <br />
 Version 2018.11.7 <br />
 New 新增了两个数据集，一个用于分类，一个用于预测 <br />
