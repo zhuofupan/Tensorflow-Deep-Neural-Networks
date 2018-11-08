@@ -294,7 +294,7 @@ def plot_para_pic(pt_img,ft_img,name):
         plt.savefig('../saver/img/'+name+'_layer_'+str(i+1)+'.png',bbox_inches='tight')
         plt.close(fig)
 
-def tSNE_2d(X=None,y=None,title=None):
+def tSNE_2d(X=None,y=None,filename=None):
     import matplotlib.pyplot as plt
     
     plt.style.use('default')
@@ -312,12 +312,12 @@ def tSNE_2d(X=None,y=None,title=None):
     fig = plt.figure(figsize=[32,18])
     ax = fig.add_subplot(111)
     plt.scatter(Y[:, 0], Y[:, 1], c=color, cmap=plt.cm.Spectral)
-    if title is not None: plt.title(title)
+    if filename is None: filename = 'tSNE_2d' 
     ax.xaxis.set_major_formatter(NullFormatter())
     ax.yaxis.set_major_formatter(NullFormatter())
     plt.axis('tight')
     if not os.path.exists('../saver/img'): os.makedirs('../saver/img')
-    plt.savefig('../saver/img/tSNE_2d.png',bbox_inches='tight')
+    plt.savefig('../saver/img/'+ filename +'.png',bbox_inches='tight')
     plt.show()
     plt.close(fig)
 

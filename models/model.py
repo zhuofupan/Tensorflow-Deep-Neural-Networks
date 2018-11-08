@@ -145,7 +145,10 @@ class Model(object):
                 print("Save Pre-trained model...")
                 saver.save(sess,pt_save_path+'/pre-train.ckpt')
             if self.use_for=='classification' and self.do_tSNE:
-                tSNE_2d(self.deep_feature,train_Y)
+                tSNE_2d(self.deep_feature,train_Y,'train')
+                if test_Y is not None:
+                    test_deep_feature = sess.run(self.pt_model.transform(test_X))
+                    tSNE_2d(test_deep_feature,test_Y,'test')
         
         _data=Batch(images=train_X,
                     labels=train_Y,

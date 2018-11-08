@@ -59,6 +59,7 @@ class unsupervised_sAE(object):
             self.parameter_list.append([ae.W,ae.bh])
             
     def train_model(self,train_X,train_Y,sess,summ):
+        # 返回最后一层特征<实值>
         X = train_X 
         for i,ae in enumerate(self.pt_list):
             print('>>> Training AE-{}:'.format(i+1))
@@ -66,4 +67,10 @@ class unsupervised_sAE(object):
             ae.unsupervised_train_model(X,train_Y,sess=sess,summ=summ)
             # 得到transform值（train_X）
             X = sess.run(ae.transform(X))
+        return X
+    
+    def transform(self,X):
+        # 返回最后一层特征<tf变量>
+        for ae in self.pt_list:
+            X = ae.transform(X)
         return X
