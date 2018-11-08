@@ -5,7 +5,7 @@ from rbms import DBM
 import sys
 sys.path.append("../base")
 from model import Model
-from base_func import act_func,Summaries
+from base_func import act_func,out_act_check,Summaries
 
 class DBN(Model):
     def __init__(self,
@@ -26,9 +26,9 @@ class DBN(Model):
                  cd_k=1,
                  pre_train=True):
         Model.__init__(self,'DBN')
-        self.output_act_func=output_act_func
-        self.hidden_act_func=hidden_act_func
         self.loss_func=loss_func
+        self.hidden_act_func=hidden_act_func
+        self.output_act_func = out_act_check(output_act_func,loss_func)
         self.use_for=use_for
         self.bp_algorithm=bp_algorithm
         self.lr=lr
@@ -44,9 +44,6 @@ class DBN(Model):
         self.cd_k = cd_k
         self.rbm_lr = rbm_lr
         self.rbm_epochs = rbm_epochs
-        
-        if output_act_func=='gauss':
-            self.loss_func='mse'
         
         self.build_model()
         
@@ -100,7 +97,7 @@ class DBN(Model):
             self.parameter_list.append([self.out_W,self.out_b])
             
             # 构建训练步
-            self.logist,self.pred=self.transform(self.input_data)
+            self.logits,self.pred=self.transform(self.input_data)
             self.build_train_step()
             
             #****************** 记录 ******************
@@ -125,7 +122,7 @@ class DBN(Model):
 
             z = tf.add(tf.matmul(next_data, W), b)
             if i==len(self.parameter_list)-1:
-                logist=z
+                logits=z
                 output_act=act_func(self.output_act_func)
                 pred=output_act(z)
             else:
@@ -133,4 +130,4 @@ class DBN(Model):
                 self.h_act_p = np.mod(self.h_act_p + 1, len(self.hidden_act_func))
                 next_data=hidden_act(z)
             
-        return logist,pred
+        return logits,pred

@@ -17,7 +17,7 @@ class Model(object):
         self.save_model = False   # save model
         self.plot_para=False      # plot W pic
         self.save_weight = False  # save W matrix
-        self.do_tSNE = False      # t-SNE
+        self.do_tSNE = True       # t-SNE
         """
             ↑ user control ↑
         """
@@ -57,7 +57,7 @@ class Model(object):
         self.test_Y=None           # real label
         self.real_class = None
         self.pred_class = None
-
+        
 
     #########################
     #        Build          #
@@ -72,16 +72,16 @@ class Model(object):
             label_data = self.label_data
         # 损失
         if self.loss is None:
-            _loss=Loss(label=label_data,
-                       pred=self.pred,
-                       logist=self.logist,  # before compute activation 
-                       output_act_func=self.output_act_func)
-            self.loss = _loss.get_loss_func(self.loss_func) # + 0.5*tf.matrix_determinant(tf.matmul(self.out_W,tf.transpose(self.out_W)))
+            _loss=Loss(label=label_data, 
+                       logits=self.logits,
+                       output_act_func=self.output_act_func,
+                       loss_name=self.loss_func)
+            self.loss = _loss.get_loss_func() # + 0.5*tf.matrix_determinant(tf.matmul(self.out_W,tf.transpose(self.out_W)))
         # 正确率
         if self.accuracy is None:
             
             _ac=Accuracy(label_data=label_data,
-                     pred=self.pred)
+                         pred=self.pred)
             self.accuracy=_ac.accuracy()
             
         # 构建训练步
@@ -284,10 +284,19 @@ class Model(object):
             if self.decay_lr:
                 self.lr = self.lr * 0.94
             for j in range(b):
-                batch_x = _data.next_batch()
-                loss,_=sess.run([self.loss,self.train_batch],feed_dict={
+                # 有监督
+                if self.use_label:  
+                    batch_x,batch_y = _data.next_batch()
+                    loss,_=sess.run([self.loss,self.train_batch],feed_dict={
                         self.input_data: batch_x,
-                        self.recon_data: batch_x})
+                        self.recon_data: batch_x,
+                        self.label_data: batch_y})
+                # 无监督
+                else:   
+                    batch_x = _data.next_batch()
+                    loss,_=sess.run([self.loss,self.train_batch],feed_dict={
+                            self.input_data: batch_x,
+                            self.recon_data: batch_x})
                 sum_loss = sum_loss + loss
     
             #**************** 写入 ******************
@@ -351,7 +360,6 @@ class Model(object):
             self.best_acc = np.diag(pred_per) # array是一个1维数组时，结果形成一个以一维数组为对角线元素的矩阵
                                               # array是一个2维矩阵时，结果输出矩阵的对角线元素 <这里是这种情况>
         return acc
-    
     
     ##########################
     #        Result          #

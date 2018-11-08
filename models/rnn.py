@@ -4,7 +4,7 @@ import numpy as np
 import sys
 sys.path.append("../base")
 from model import Model
-from base_func import act_func,Summaries
+from base_func import act_func,out_act_check,Summaries
 
 class RNN(Model):
     def __init__(self,
@@ -21,8 +21,8 @@ class RNN(Model):
                  batch_size=32,
                  dropout=0):
         Model.__init__(self,'RNN')
-        self.output_act_func=output_act_func
         self.hidden_act_func=hidden_act_func
+        self.output_act_func = out_act_check(output_act_func,loss_func)
         self.loss_func=loss_func
         self.use_for=use_for
         self.bp_algorithm=bp_algorithm
@@ -58,7 +58,7 @@ class RNN(Model):
             X=tf.split(self.input_data,self.width,axis=1)
             
             self.create_variable()
-            self.logist,self.pred = self.transform(X)
+            self.logits,self.pred = self.transform(X)
             self.build_train_step()
             
             #****************** 记录 ******************
@@ -113,7 +113,7 @@ class RNN(Model):
                 with tf.name_scope('classification'):
                     W=self.depth_parameter[-1][0]
                     b=self.depth_parameter[-1][1]
-                    logist = tf.matmul(next_data,W) + b
-                    pred = self.output_act(logist)
-        return logist,pred
+                    logits = tf.matmul(next_data,W) + b
+                    pred = self.output_act(logits)
+        return logits,pred
       

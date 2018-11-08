@@ -3,7 +3,7 @@ import tensorflow as tf
 import sys
 sys.path.append("../base")
 from model import Model
-from base_func import act_func,Summaries
+from base_func import act_func,out_act_check,Summaries
 
 class CNN(Model):
     def __init__(self,
@@ -21,8 +21,8 @@ class CNN(Model):
                  batch_size=32,
                  dropout=0):
         Model.__init__(self,'CNN')
-        self.output_act_func=output_act_func
         self.hidden_act_func=hidden_act_func
+        self.output_act_func = out_act_check(output_act_func,loss_func)
         self.loss_func=loss_func
         self.use_for=use_for
         self.lr=lr
@@ -54,7 +54,7 @@ class CNN(Model):
         X = tf.reshape(self.input_data, shape=[-1,self.img_shape[0] , self.img_shape[1], self.channels[0]])
         
         # 构建训练步
-        self.logist,self.pred = self.transform(X)
+        self.logits,self.pred = self.transform(X)
         self.build_train_step()
         
         # Tensorboard
@@ -127,8 +127,8 @@ class CNN(Model):
             z=tf.add(tf.matmul(X,self.W[-1]), self.b[-1])
             
             if i==len(self.channels)-2:
-                logist = z
+                logits = z
                 pred = act_func(self.output_act_func)(z) # Relu activation
             else:
                 X = act_func(self.hidden_act_func)(z) # Relu activation 
-        return logist,pred
+        return logits,pred

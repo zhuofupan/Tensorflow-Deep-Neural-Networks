@@ -5,7 +5,7 @@ import numpy as np
 import sys
 sys.path.append("../base")
 from model import Model
-from base_func import act_func,Summaries
+from base_func import act_func,out_act_check,Summaries
 
 class LSTM(Model):
     def __init__(self,
@@ -22,8 +22,8 @@ class LSTM(Model):
                  dropout=0,
                  variants=0):
         Model.__init__(self,'LSTM')
-        self.output_act_func=output_act_func
         self.loss_func=loss_func
+        self.output_act_func = out_act_check(output_act_func,loss_func)
         self.use_for=use_for
         self.bp_algorithm=bp_algorithm
         self.lr=lr
@@ -59,7 +59,7 @@ class LSTM(Model):
             self.create_variable()
             
             # 构建训练步
-            self.logist,self.pred = self.transform(X)
+            self.logits,self.pred = self.transform(X)
             self.build_train_step()
             
             #****************** 记录 ******************
@@ -182,6 +182,6 @@ class LSTM(Model):
                     x=self.next_data(x,k,j)       
             if k==self.width-1:
                 with tf.name_scope('classification'):
-                    logist = tf.matmul(x,self.W) + self.b
-                    pred = self.output_act(logist)
-        return logist,pred
+                    logits = tf.matmul(x,self.W) + self.b
+                    pred = self.output_act(logits)
+        return logits,pred

@@ -5,7 +5,7 @@ from un_sae import unsupervised_sAE
 import sys
 sys.path.append("../base")
 from model import Model
-from base_func import act_func,Summaries
+from base_func import act_func,out_act_check,Summaries
 
 class supervised_sAE(Model):
     def __init__(self,
@@ -27,8 +27,8 @@ class supervised_sAE(Model):
                  ae_epochs=20,
                  pre_train=True):
         Model.__init__(self,'sup_sAE')
-        self.output_func=output_func
         self.hidden_func=hidden_func
+        self.output_act_func = out_act_check(output_func,loss_func)
         
         self.use_for=use_for
         self.loss_func=loss_func
@@ -104,7 +104,7 @@ class supervised_sAE(Model):
             self.parameter_list.append([self.out_W,self.out_b])
             
             # 构建训练步
-            self.logist,self.pred=self.transform(self.input_data)
+            self.logits,self.pred=self.transform(self.input_data)
             self.build_train_step()
             
             #****************** 记录 ******************
@@ -129,12 +129,12 @@ class supervised_sAE(Model):
                 
             z = tf.add(tf.matmul(next_data, W), b)
             if i==len(self.parameter_list)-1:
-                logist=z
-                output_act=act_func(self.output_func)
-                pred=output_act(logist)
+                logits=z
+                output_act=act_func(self.output_act_func)
+                pred=output_act(logits)
             else:
                 hidden_act=act_func(self.hidden_func,self.h_act_p)
                 self.h_act_p = np.mod(self.h_act_p + 1, len(self.hidden_func))
                 next_data=hidden_act(z)
             
-        return logist,pred
+        return logits,pred

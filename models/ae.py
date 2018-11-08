@@ -4,7 +4,7 @@ import numpy as np
 import sys
 sys.path.append("../base")
 from model import Model
-from base_func import Loss,act_func,Summaries
+from base_func import Loss,act_func,out_act_check,Summaries
 
 class AE(Model):
     
@@ -39,14 +39,11 @@ class AE(Model):
         self.momentum= 0.5
         
         self.en_func=act_type[0]
-        self.de_func=act_type[1]
+        self.de_func= out_act_check(act_type[1],loss_func)
         
-        # loss: cross_entropy 要求 recon_v 必须是0~1之间的数
-        if loss_func=='cross_entropy' and (act_type[1] not in ['softmax','sigmoid','gauss']):
-            self.de_func = 'gauss'
         # sae: kl 要求 h 必须是0~1之间的数
         if ae_type=='sae' and (act_type[0] not in ['softmax','sigmoid','gauss']):
-            self.en_func = 'gauss'
+            self.en_func = 'sigmoid'
         
         with tf.name_scope(self.name):
             self.build_model()
@@ -76,16 +73,22 @@ class AE(Model):
         if self.ae_type=='dae': # 去噪自编码器 [dae]
             x_=self.add_noise(x)
             h=self.transform(x_)
-            self.logist,self.pred=self.reconstruction(h)
-            self.loss = self.denoising_loss()
+            self.logits,self.pred=self.reconstruction(h)
+            _loss=Loss(label=self.input_data, 
+                       logits=self.logits,
+                       output_act_func=self.de_func,
+                       loss_name=self.loss_func)
+            loss_mat,_=_loss.get_loss_mat()
+            self.loss = self.denoising_loss(loss_mat)
         else: 
             h=self.transform(x) # 自编码器 [ae]
-            self.logist,self.pred=self.reconstruction(h)
+            self.logits,self.pred=self.reconstruction(h)
+            # 这部分损失共用
             _loss=Loss(label=self.input_data, 
-                       pred=self.pred,
-                       logist=self.logist,
-                       output_act_func=self.de_func)
-            self.loss=_loss.get_loss_func(self.loss_func)
+                       logits=self.logits,
+                       output_act_func=self.de_func,
+                       loss_name=self.loss_func)
+            self.loss=_loss.get_loss_func()
             if self.ae_type=='sae': # 稀疏自编码器 [sae]
                 self.loss = self.alpha * self.loss + self.beta * self.sparse_loss(h)
         
@@ -106,16 +109,20 @@ class AE(Model):
         return act_func(self.en_func)(add_in)
     
     def reconstruction(self,h):
-        logist = tf.matmul(h, tf.transpose(self.W)) + self.bz
-        recon = act_func(self.de_func)(logist)
-        return logist,recon
+        logits = tf.matmul(h, tf.transpose(self.W)) + self.bz
+        recon = act_func(self.de_func)(logits)
+        return logits,recon
     
     ###############
     #     DAE     #
     ###############
     
+    # 加噪声
     def add_noise(self,x):
-        # A为损失系数矩阵，一行对应一个样本，引入噪声的维度系数为alpha，未引入噪声的为beta
+        """
+            A为损失系数矩阵，一行对应一个样本，引入噪声的变量的系数为alpha，未引入噪声的为beta
+            当噪声类型为 Masking noise (mn) 时，相当于做 dropout
+        """ 
         rand_mat = tf.random_uniform(shape=tf.shape(x),minval=0,maxval=1)
         self.A_ = tf.to_float(rand_mat<self.p,name='Noise') # 噪声系数矩阵
         self.A = 1-self.A_ # 保留系数矩阵
@@ -126,30 +133,12 @@ class AE(Model):
             x_ = x * self.A
         return x_
     
-    def denoising_loss(self):
-        loss_mat,_=self.get_loss_mat()  # 计算 loss 矩阵
+    # 返回 loss 值 
+    def denoising_loss(self,loss_mat):
         loss_mat = self.alpha * loss_mat * self.A + self.beta * loss_mat * self.A_
         if self.loss_func=='cross_entropy' and self.de_func=='softmax':
             loss_mat=tf.reduce_sum(loss_mat,axis=1)
         return tf.reduce_mean(loss_mat)
-        
-    def get_loss_mat(self):
-        y = self.input_data
-        y_ = self.pred
-        if self.loss_func=='mse':
-            loss_mat=tf.square(y-y_)
-        elif self.loss_func=='cross_entropy':
-            y = tf.clip_by_value(y,1e-10, 1.0-1e-10)
-            y_ = tf.clip_by_value(y_,1e-10, 1.0-1e-10)
-            if self.de_func=='sigmoid':
-                loss_mat=-y*tf.log(y_)-(1-y)*tf.log(1-y_)
-            elif self.de_func=='softmax':
-                loss_mat=-y * tf.log(y_)
-        if self.loss_func=='cross_entropy' and self.de_func=='softmax':
-            loss = tf.reduce_mean(tf.reduce_sum(loss_mat,axis=1))
-        else:
-            loss = tf.reduce_mean(loss_mat)
-        return loss_mat,loss  # loss_mat 未均值之前
     
     ###############
     #     SAE     #

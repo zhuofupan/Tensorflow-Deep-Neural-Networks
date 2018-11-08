@@ -133,70 +133,59 @@ def BN(var,z,gamma,beta):
 """
 
 ###########################
-#      变量初始化检测       #
-###########################
-
-def init_rest_var(sess):
-    uninit_vars = []
-    for var in tf.global_variables():
-        try:
-            sess.run(var)
-        except tf.errors.FailedPreconditionError:
-            uninit_vars.append(var)
-    sess.run(tf.variables_initializer(uninit_vars))  
-
-###########################
-#       tensorboard       #
-###########################
-    
-class Summaries(object):
-    def __init__(self,
-                 file_name,
-                 sess):
-        # 定义 FileWriter 用于记录 merge
-        write_path = '../tensorboard/'+file_name
-        if not os.path.exists(write_path): os.makedirs(write_path)
-        self.train_writer = tf.summary.FileWriter(write_path, sess.graph)
-   
-    def scalars_histogram(name,var):
-        """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
-        with tf.name_scope(name):
-          # 计算参数的均值，并使用tf.summary.scaler记录
-          mean = tf.reduce_mean(var)
-          #tf.summary.scalar('mean', mean)
-          # 计算参数的标准差
-          stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
-          # 使用tf.summary.scaler记录记录下标准差，最大值，最小值
-          tf.summary.scalar('stddev', stddev)
-          tf.summary.scalar('mean', mean)
-          tf.summary.scalar('max', tf.reduce_max(var))
-          tf.summary.scalar('min', tf.reduce_min(var))
-          # 用直方图记录参数的分布
-          tf.summary.histogram('distribution', var)
-
-###########################
 #          损失类          #
 ###########################
 
+def out_act_check(out_act,loss_name):
+    if loss_name=='cross_entropy' and (out_act not in ['softmax','sigmoid']):
+        return 'softmax'
+    else:
+        return out_act
+
 class Loss(object):
     def __init__(self,
-                 label,
-                 pred,
-                 logist,
-                 output_act_func):
+                 label, 
+                 logits,   # 未经过激活函数之前
+                 out_func_name,
+                 loss_name):
         self.label = label
-        self.pred = pred
-        self.logist = logist
-        self.output_act_func = output_act_func  
+        self.pred = act_func(out_func_name)(logits)   # 经过激活函数之后的
+        self.logits = logits
+        self.out_func_name = out_func_name
+        self.loss_name = loss_name
         
-    def get_loss_func(self,func_name):
-        if func_name=='cross_entropy': # 注意 logist
-            if self.output_act_func=='softmax':
-                return tf.losses.softmax_cross_entropy(self.label, self.logist)
-            if self.output_act_func=='sigmoid':
-                return tf.losses.sigmoid_cross_entropy(self.label, self.logist)
-        if func_name=='mse':
+    def get_loss_func(self):
+        if self.loss_name=='cross_entropy': # 注意 logits
+            if self.out_func_name=='softmax':
+                return tf.losses.softmax_cross_entropy(self.label, self.logits)
+            if self.out_func_name=='sigmoid':
+                return tf.losses.sigmoid_cross_entropy(self.label, self.logits)
+        if self.loss_name=='mse':
             return tf.losses.mean_squared_error(self.label, self.pred)
+        
+    def get_loss_mat(self):
+        # 计算 loss mat <未取均值之前>
+        y = self.label
+        p = self.pred
+        if self.loss_name=='mse':
+            loss_mat=tf.square(p-y)
+        elif self.loss_name=='cross_entropy':
+            # y = tf.clip_by_value(y,1e-10, 1.0-1e-10)
+            # y_ = tf.clip_by_value(y_,1e-10, 1.0-1e-10)
+            if self.out_func_name=='sigmoid':
+                """
+                    let `z = logits`, `y = labels`.
+                    loss_mat = y * -log(sigmoid(z)) + (1 - y) * -log(1 - sigmoid(z))
+                """
+                loss_mat=-y * tf.log1p(p) - (1 - y)* tf.log1p(1 - p)
+            elif self.out_func_name=='softmax':
+                loss_mat=-y * tf.log1p(p)
+        # 计算 loss
+        if self.loss_name =='cross_entropy' and self.out_func_name=='softmax':
+            loss = tf.reduce_mean(tf.reduce_sum(loss_mat,axis=1))
+        else:
+            loss = tf.reduce_mean(loss_mat)
+        return loss_mat,loss
 
 ###########################
 #         正确率类         #
@@ -321,6 +310,47 @@ def tSNE_2d(X=None,y=None,filename=None):
     plt.show()
     plt.close(fig)
 
+###########################
+#      变量初始化检测       #
+###########################
+
+def init_rest_var(sess):
+    uninit_vars = []
+    for var in tf.global_variables():
+        try:
+            sess.run(var)
+        except tf.errors.FailedPreconditionError:
+            uninit_vars.append(var)
+    sess.run(tf.variables_initializer(uninit_vars))  
+
+###########################
+#       tensorboard       #
+###########################
+    
+class Summaries(object):
+    def __init__(self,
+                 file_name,
+                 sess):
+        # 定义 FileWriter 用于记录 merge
+        write_path = '../tensorboard/'+file_name
+        if not os.path.exists(write_path): os.makedirs(write_path)
+        self.train_writer = tf.summary.FileWriter(write_path, sess.graph)
+   
+    def scalars_histogram(name,var):
+        """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+        with tf.name_scope(name):
+          # 计算参数的均值，并使用tf.summary.scaler记录
+          mean = tf.reduce_mean(var)
+          #tf.summary.scalar('mean', mean)
+          # 计算参数的标准差
+          stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+          # 使用tf.summary.scaler记录记录下标准差，最大值，最小值
+          tf.summary.scalar('stddev', stddev)
+          tf.summary.scalar('mean', mean)
+          tf.summary.scalar('max', tf.reduce_max(var))
+          tf.summary.scalar('min', tf.reduce_min(var))
+          # 用直方图记录参数的分布
+          tf.summary.histogram('distribution', var)
 
 ###########################
 #         运行会话         #
