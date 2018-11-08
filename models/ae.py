@@ -76,7 +76,7 @@ class AE(Model):
             self.logits,self.pred=self.reconstruction(h)
             _loss=Loss(label=self.input_data, 
                        logits=self.logits,
-                       output_act_func=self.de_func,
+                       out_func_name=self.de_func,
                        loss_name=self.loss_func)
             loss_mat,_=_loss.get_loss_mat()
             self.loss = self.denoising_loss(loss_mat)
@@ -86,7 +86,7 @@ class AE(Model):
             # 这部分损失共用
             _loss=Loss(label=self.input_data, 
                        logits=self.logits,
-                       output_act_func=self.de_func,
+                       out_func_name=self.de_func,
                        loss_name=self.loss_func)
             self.loss=_loss.get_loss_func()
             if self.ae_type=='sae': # 稀疏自编码器 [sae]

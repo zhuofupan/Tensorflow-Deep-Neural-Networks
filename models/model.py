@@ -74,7 +74,7 @@ class Model(object):
         if self.loss is None:
             _loss=Loss(label=label_data, 
                        logits=self.logits,
-                       output_act_func=self.output_act_func,
+                       out_func_name=self.output_act_func,
                        loss_name=self.loss_func)
             self.loss = _loss.get_loss_func() # + 0.5*tf.matrix_determinant(tf.matmul(self.out_W,tf.transpose(self.out_W)))
         # 正确率

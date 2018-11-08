@@ -206,6 +206,10 @@ class Accuracy(object):
             pre_lables=tf.round(self.pred)
             data_lables=tf.round(self.label_data)
         return tf.reduce_mean(tf.cast(tf.equal(pre_lables,data_lables),tf.float32))
+
+###########################
+#         优化器类         #
+###########################
     
 class Optimization(object):
     def __init__(self,r=1e-3,momentum=0.5,use_nesterov=False):
