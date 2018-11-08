@@ -40,12 +40,13 @@ class AE(Model):
         
         self.en_func=act_type[0]
         self.de_func=act_type[1]
-        # loss: cross_entropy 要求 h 必须是0~1之间的数
-        if loss_func=='cross_entropy' and act_type[1]!='softmax' and act_type[1]!='sigmoid':
-            self.loss_func = 'mse'
-        # sae: cross_entropy 要求 h 必须是0~1之间的数
-        if (ae_type=='sae' or ae_type=='yae') and act_type[1]!='softmax' and act_type[1]!='sigmoid':
-            self.de_func = 'sigmoid'
+        
+        # loss: cross_entropy 要求 recon_v 必须是0~1之间的数
+        if loss_func=='cross_entropy' and (act_type[1] not in ['softmax','sigmoid','gauss']):
+            self.de_func = 'gauss'
+        # sae: kl 要求 h 必须是0~1之间的数
+        if ae_type=='sae' and (act_type[0] not in ['softmax','sigmoid','gauss']):
+            self.en_func = 'gauss'
         
         with tf.name_scope(self.name):
             self.build_model()
