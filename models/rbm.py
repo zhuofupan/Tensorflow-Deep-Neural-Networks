@@ -64,12 +64,12 @@ class RBM(Model):
             v0=self.input_data # v0
             h0,s_h0=self.transform(v0) # h0
             # vk,hk
-            logist,vk=self.reconstruction(s_h0) # v1
+            logits,vk=self.reconstruction(s_h0) # v1
             for k in range(self.cd_k-1):
                 _,s_hk=self.transform(vk) # trans（sample）
-                logist,vk=self.reconstruction(s_hk) # recon（compute）
+                logits,vk=self.reconstruction(s_hk) # recon（compute）
             hk,_=self.transform(vk) # hk
-            self.logist=logist
+            self.logits=logits
             self.pred = vk
             
             with tf.name_scope('Gradient_Descent'):
@@ -109,6 +109,6 @@ class RBM(Model):
         return prob_h,state_h
     
     def reconstruction(self,h):
-        logist = tf.matmul(h, tf.transpose(self.W)) + self.bv
-        prob_v=self.v_func(logist)
-        return logist,prob_v
+        logits = tf.matmul(h, tf.transpose(self.W)) + self.bv
+        prob_v=self.v_func(logits)
+        return logits,prob_v
