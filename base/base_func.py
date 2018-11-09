@@ -301,7 +301,7 @@ def tSNE_2d(X=None,y=None,filename=None):
     plt.style.use('default')
     print('Start t-SNE...')
     X = MinMaxScaler().fit_transform(X)
-    if len(y.shape)>1:
+    if len(y.shape)>1 and y.shape[1]>1:
         y = np.array(np.argmax(y,axis=1).reshape(-1, 1),dtype=np.float32)
     color = MinMaxScaler().fit_transform(y).reshape(-1,)
     t0 = time()
