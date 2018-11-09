@@ -29,7 +29,7 @@ p_dim=int(np.sqrt(x_dim))
 
 tf.reset_default_graph()
 # Training
-select_case = 3
+select_case = 1
 
 if select_case==1:
     classifier = DBN(
@@ -41,12 +41,12 @@ if select_case==1:
                  momentum=0.5,
                  use_for='classification',
                  bp_algorithm='rmsp',
-                 epochs=100,
+                 epochs=10,
                  batch_size=32,
                  dropout=0.12,
                  units_type=['gauss','bin'],
                  rbm_lr=1e-3,
-                 rbm_epochs=16,
+                 rbm_epochs=5,
                  cd_k=1)
 if select_case==2:
     classifier = CNN(
@@ -55,7 +55,7 @@ if select_case==2:
                  loss_func='cross_entropy',
                  use_for='classification',
                  lr=1e-3,
-                 epochs=30,
+                 epochs=20,
                  img_shape=[p_dim,p_dim],
                  channels=[1, 6, 6, 64, y_dim], # 前几维给 ‘Conv’ ，后几维给 ‘Full connect’
                  layer_tp=['C','P','C','P'],
@@ -71,16 +71,16 @@ if select_case==3:
                  struct=[x_dim, 400, 200, 100, y_dim],
                  lr=1e-3,
                  use_for='classification',
-                 epochs=100,
+                 epochs=10,
                  batch_size=32,
                  dropout=0.12,
-                 ae_type='yae', # ae | dae | sae
-                 act_type=['gauss','affine'],# decoder：[sigmoid] with ‘cross_entropy’ | [affine] with ‘mse’
+                 ae_type='ae', # ae | dae | sae
+                 act_type=['sigmoid','sigmoid'],# decoder：[sigmoid] with ‘cross_entropy’ | [affine] with ‘mse’
                  noise_type='mn', # Gaussian noise (gs) | Masking noise (mn)
                  beta=0.5, # DAE：噪声损失系数 | SAE：稀疏损失系数
                  p=0.3, # DAE：样本该维作为噪声的概率 / SAE稀疏性参数：期望的隐层平均活跃度（在训练批次上取平均）
                  ae_lr=1e-3,
-                 ae_epochs=16,
+                 ae_epochs=5,
                  pre_train=True)
 run_sess(classifier,datasets,filename,load_saver='')
 label_distribution = classifier.label_distribution

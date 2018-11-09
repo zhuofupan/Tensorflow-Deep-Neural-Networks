@@ -145,17 +145,24 @@ def out_act_check(out_act,loss_name):
 class Loss(object):
     def __init__(self,
                  label, 
-                 logits,   # 未经过激活函数之前
                  out_func_name,
-                 loss_name):
+                 loss_name,
+                 logits = None,
+                 pred = None):# 未经过激活函数之前
+        
         self.label = label
-        self.pred = act_func(out_func_name)(logits)   # 经过激活函数之后的
+        self.pred = pred
         self.logits = logits
         self.out_func_name = out_func_name
         self.loss_name = loss_name
         
+        if pred is None:
+            self.pred = act_func(out_func_name)(logits)   # 经过激活函数之后的
+        
     def get_loss_func(self):
         if self.loss_name=='cross_entropy': # 注意 logits
+            # 使用 cross_entropy 的时候，应尽量让 label 和 func(logits) 处于0~1之间
+            self.label = tf.clip_by_value(self.label,0, 1.0)
             if self.out_func_name=='softmax':
                 return tf.losses.softmax_cross_entropy(self.label, self.logits)
             if self.out_func_name=='sigmoid':
@@ -170,16 +177,17 @@ class Loss(object):
         if self.loss_name=='mse':
             loss_mat=tf.square(p-y)
         elif self.loss_name=='cross_entropy':
-            # y = tf.clip_by_value(y,1e-10, 1.0-1e-10)
-            # y_ = tf.clip_by_value(y_,1e-10, 1.0-1e-10)
+            y = tf.clip_by_value(y,0, 1.0)
+            p = tf.clip_by_value(p,1e-10, 1.0-1e-10)
             if self.out_func_name=='sigmoid':
                 """
                     let `z = logits`, `y = labels`.
                     loss_mat = y * -log(sigmoid(z)) + (1 - y) * -log(1 - sigmoid(z))
+                    log1p(x) = log(1 + x)
                 """
-                loss_mat=-y * tf.log1p(p) - (1 - y)* tf.log1p(1 - p)
+                loss_mat=-y * tf.log(p) - (1 - y)* tf.log(1 - p)
             elif self.out_func_name=='softmax':
-                loss_mat=-y * tf.log1p(p)
+                loss_mat=-y * tf.log(p)
         # 计算 loss
         if self.loss_name =='cross_entropy' and self.out_func_name=='softmax':
             loss = tf.reduce_mean(tf.reduce_sum(loss_mat,axis=1))

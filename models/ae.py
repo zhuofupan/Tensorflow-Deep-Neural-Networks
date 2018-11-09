@@ -74,7 +74,7 @@ class AE(Model):
             x_=self.add_noise(x)
             h=self.transform(x_)
             self.logits,self.pred=self.reconstruction(h)
-            _loss=Loss(label=self.input_data, 
+            _loss=Loss(label=self.recon_data, 
                        logits=self.logits,
                        out_func_name=self.de_func,
                        loss_name=self.loss_func)
@@ -84,11 +84,12 @@ class AE(Model):
             h=self.transform(x) # 自编码器 [ae]
             self.logits,self.pred=self.reconstruction(h)
             # 这部分损失共用
-            _loss=Loss(label=self.input_data, 
+            _loss=Loss(label=self.recon_data, 
                        logits=self.logits,
                        out_func_name=self.de_func,
                        loss_name=self.loss_func)
             self.loss=_loss.get_loss_func()
+            #_,self.loss=_loss.get_loss_mat()
             if self.ae_type=='sae': # 稀疏自编码器 [sae]
                 self.loss = self.alpha * self.loss + self.beta * self.sparse_loss(h)
         

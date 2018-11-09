@@ -17,7 +17,7 @@ class Model(object):
         self.save_model = False   # save model
         self.plot_para=False      # plot W pic
         self.save_weight = False  # save W matrix
-        self.do_tSNE = True       # t-SNE
+        self.do_tSNE = False       # t-SNE
         """
             ↑ user control ↑
         """
@@ -104,27 +104,28 @@ class Model(object):
 
     #########################
     #        Train          #
-    #########################
-    
+    ######################### 
+
 
     def train_model(self,train_X,train_Y=None,test_X=None,test_Y=None,sess=None,summ=None,load_saver=''):
-        pt_save_path='../saver/'+self.name+'/pre-train'
-        ft_save_path='../saver/'+self.name+'/fine-tune'
-        if not os.path.exists(pt_save_path): os.makedirs(pt_save_path)
-        if not os.path.exists(ft_save_path): os.makedirs(ft_save_path)
-        saver = tf.train.Saver()
+        
         W_csv_pt = None
+        saver = tf.train.Saver()
+        
         if load_saver=='f':
             # 加载训练好的模型 --- < fine-tuned >
             print("Load Fine-tuned model...")
+            ft_save_path='../saver/'+self.name+'/fine-tune'
+            if not os.path.exists(ft_save_path): os.makedirs(ft_save_path)
             saver.restore(sess,ft_save_path+'/fine-tune.ckpt')
-            # >>> Test Acc
-            test_acc=self.validation_model(test_X,test_Y,sess) 
-            return print('>>> Test accuracy = {:.4}'.format(test_acc))
+            
         elif load_saver=='p':
             # 加载预训练的模型 --- < pre-trained >
             print("Load Pre-trained model...")
+            pt_save_path='../saver/'+self.name+'/pre-train'
+            if not os.path.exists(pt_save_path): os.makedirs(pt_save_path)
             saver.restore(sess,pt_save_path+'/pre-train.ckpt')
+            
         elif self.pt_model is not None:
             
             #####################################################################
@@ -150,97 +151,89 @@ class Model(object):
                     test_deep_feature = sess.run(self.pt_model.transform(test_X))
                     tSNE_2d(test_deep_feature,test_Y,'test')
         
-        _data=Batch(images=train_X,
-                    labels=train_Y,
-                    batch_size=self.batch_size)
         
-        b = int(train_X.shape[0]/self.batch_size)
-        
-        # 统计样本总数
-        if self.use_for=='classification' and test_Y is not None:
-            real_class = []
-            if type(test_Y)==list:
-                self.sample_cnt=np.zeros([test_Y[0].shape[1]]) # 各类样本总数
-                self.sample_total = 0                          # 所有样本总数
-                for i,Y in enumerate(test_Y):
-                    if i==0:
-                        real_class = np.argmax(Y,axis=1)
-                    else:
-                        real_class = np.concatenate((real_class,np.argmax(Y,axis=1)),axis=0)
-                    self.sample_cnt[i] = test_Y[i].shape[0]
-                    self.sample_total = self.sample_total + self.sample_cnt[i]
-            self.real_class = real_class
-                
-        self.loss_and_acc=np.zeros((self.epochs,4))
-        self.test_Y=test_Y  
+        self.test_Y=test_Y 
+        # 统计测试集各类样本总数
+        self.stat_label_total()
 
         #######################################################
         #     开始微调 -------------- < start fine-tuning >    #
         #######################################################
         
-        print("Start Fine-tuning...")
-        # 迭代次数
-        time_start=time.time()
-        for i in range(self.epochs):
-            sum_loss=0; sum_acc=0
-            for j in range(b):
-                batch_x, batch_y= _data.next_batch()
-                loss,acc,_=sess.run([self.loss,self.accuracy,self.train_batch],feed_dict={
-                        self.input_data: batch_x,
-                        self.label_data: batch_y,
-                        self.keep_prob: 1-self.dropout})
-                sum_loss = sum_loss + loss; sum_acc= sum_acc +acc
-                
-            #**************** 写入 ******************
-            if self.tbd:
-                summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.label_data: batch_y,self.keep_prob: 1-self.dropout})
-                summ.train_writer.add_summary(summary, i)
-            #****************************************
-            loss = sum_loss/b; acc = sum_acc/b
+        if load_saver!='f':
+            print("Start Fine-tuning...")
+            _data=Batch(images=train_X,
+                        labels=train_Y,
+                        batch_size=self.batch_size)
             
-            self.loss_and_acc[i][0]=loss              # <0> 损失loss
-            time_end=time.time()
-            time_delta = time_end-time_start
-            self.loss_and_acc[i][3]=time_delta        # <3> 耗时time
+            b = int(train_X.shape[0]/self.batch_size)
+            self.loss_and_acc=np.zeros((self.epochs,4))
+            # 迭代次数
+            time_start=time.time()
+            for i in range(self.epochs):
+                sum_loss=0; sum_acc=0
+                for j in range(b):
+                    batch_x, batch_y= _data.next_batch()
+                    loss,acc,_=sess.run([self.loss,self.accuracy,self.train_batch],feed_dict={
+                            self.input_data: batch_x,
+                            self.label_data: batch_y,
+                            self.keep_prob: 1-self.dropout})
+                    sum_loss = sum_loss + loss; sum_acc= sum_acc +acc
+                    
+                #**************** 写入 ******************
+                if self.tbd:
+                    summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.label_data: batch_y,self.keep_prob: 1-self.dropout})
+                    summ.train_writer.add_summary(summary, i)
+                #****************************************
+                loss = sum_loss/b; acc = sum_acc/b
+                
+                self.loss_and_acc[i][0]=loss              # <0> 损失loss
+                time_end=time.time()
+                time_delta = time_end-time_start
+                self.loss_and_acc[i][3]=time_delta        # <3> 耗时time
+                
+                # >>> for 'classification'
+                if self.use_for=='classification': 
+                    self.loss_and_acc[i][1]=acc           # <1> 训练acc
+                    string = '>>> epoch = {}/{}  | 「Train」: loss = {:.4} , accuracy = {:.4}% , expend time = {:.4}'.format(i+1,self.epochs,loss,acc*100,time_delta)
+                    
+                    ###########################################################
+                    #     开始测试    <classification>  with: test_X, test_Y   #
+                    ###########################################################
+                    
+                    if test_Y is not None:
+                        acc=self.test_average_accuracy(test_X,test_Y,sess)
+                        string = string + '  | 「Test」: accuracy = {:.4}%'.format(acc*100)
+                        self.loss_and_acc[i][2]=acc       # <2> 测试acc
+                        
+                    sys.stdout.write('\r'+ string)
+                    sys.stdout.flush()
+                    
+                # >>> for 'prediction'
+                else:                              
+                    string = '>>> epoch = {}/{}  | 「Train」: loss = {:.4}'.format(i+1,self.epochs,loss)
+                    
+                    ###########################################################
+                    #     开始测试    <prediction>  with: test_X, test_Y       #
+                    ###########################################################
+                    
+                    if test_Y is not None:
+                        mse,pred_Y = self.test_model(test_X,test_Y,sess)
+                        string = string + '  | 「Test」: mse = {:.4}%'.format(mse)
+                        self.loss_and_acc[i][2]=mse       # <2> 测试acc
+                        if mse < self.mse:
+                            self.mse = mse
+                            self.pred_Y = pred_Y
+                            
+                    sys.stdout.write('\r'+ string)
+                    sys.stdout.flush()
+    
+            print('')
+            np.savetxt("../saver/loss_and_acc.csv", self.loss_and_acc, fmt='%.4f',delimiter=",")
             
-            # >>> for 'classification'
-            if self.use_for=='classification': 
-                self.loss_and_acc[i][1]=acc           # <1> 训练acc
-                string = '\r'+'>>> epoch = {}/{} , loss = {:.4} , train accuracy = {:.4}% , expend time = {:.4}'.format(i+1,self.epochs,loss,acc*100,time_delta)
-                sys.stdout.write(string)
-                sys.stdout.flush()
-                
-                ###########################################################
-                #     开始测试    <classification>  with: test_X, test_Y   #
-                ###########################################################
-                
-                if test_Y is not None:
-                    acc=self.test_average_accuracy(test_X,test_Y,sess)
-                    string = string + '\n' +  '    >>> test accuracy = {:.4}%'.format(acc*100)
-                    sys.stdout.write(string)
-                    sys.stdout.flush()
-                    self.loss_and_acc[i][2]=acc       # <2> 测试acc
-            # >>> for 'prediction'
-            else:                              
-                string = '\r'+'>>> epoch = {}/{} , loss = {:.4}'.format(i+1,self.epochs,loss)
-                sys.stdout.write(string)
-                sys.stdout.flush()
-                
-                ###########################################################
-                #     开始测试    <prediction>  with: test_X, test_Y       #
-                ###########################################################
-                
-                if test_Y is not None:
-                    mse,pred_Y = self.test_model(test_X,test_Y,sess)
-                    string = string + '\n' +  '    >>> test mse = {:.4}%'.format(mse)
-                    sys.stdout.write(string)
-                    sys.stdout.flush()
-                    self.loss_and_acc[i][2]=mse       # <2> 测试acc
-                    if mse < self.mse:
-                        self.mse = mse
-                        self.pred_Y = pred_Y
-
-        print('')
+            if self.save_model:                   
+                print("Save model...")
+                saver.save(sess,ft_save_path+'/fine-tune.ckpt')
         
         #################################################################
         #     开始测试    <classification, prediction>  with: test_X     #
@@ -258,12 +251,7 @@ class Model(object):
             
         if self.plot_para:  
             plot_para_pic(W_csv_pt,W_csv_ft,name=self.name)
-            
-        if self.save_model:                   
-            print("Save model...")
-            saver.save(sess,ft_save_path+'/fine-tune.ckpt')
-        
-        np.savetxt("../saver/loss_and_acc.csv", self.loss_and_acc, fmt='%.4f',delimiter=",")
+                  
     
     def unsupervised_train_model(self,train_X,train_Y,sess,summ):
         if self.use_label: labels = train_Y
@@ -284,19 +272,10 @@ class Model(object):
             if self.decay_lr:
                 self.lr = self.lr * 0.94
             for j in range(b):
-                # 有监督
-                if self.use_label:  
-                    batch_x,batch_y = _data.next_batch()
-                    loss,_=sess.run([self.loss,self.train_batch],feed_dict={
+                batch_x = _data.next_batch()
+                loss,_=sess.run([self.loss,self.train_batch],feed_dict={
                         self.input_data: batch_x,
-                        self.recon_data: batch_x,
-                        self.label_data: batch_y})
-                # 无监督
-                else:   
-                    batch_x = _data.next_batch()
-                    loss,_=sess.run([self.loss,self.train_batch],feed_dict={
-                            self.input_data: batch_x,
-                            self.recon_data: batch_x})
+                        self.recon_data: batch_x})
                 sum_loss = sum_loss + loss
     
             #**************** 写入 ******************
@@ -305,13 +284,22 @@ class Model(object):
                 summ.train_writer.add_summary(summary, i)
             #****************************************
             loss = sum_loss/b
-            string = '\r'+'>>> epoch = {}/{} , loss = {:.4}'.format(i+1,self.epochs,loss)
-            sys.stdout.write(string)
+            string = '>>> epoch = {}/{}  | 「Train」: loss = {:.4}'.format(i+1,self.epochs,loss)
+            sys.stdout.write('\r' + string)
             sys.stdout.flush()
             
         print('')
     
+    #########################
+    #      Statistics       #
+    #########################
     
+    
+    def stat_label_total(self):
+        # 统计样本总数
+        if self.use_for=='classification' and self.test_Y is not None:
+            self.real_class = np.argmax(self.test_Y,axis=1)
+            
     #########################
     #        Judge          #
     #########################
@@ -338,6 +326,29 @@ class Model(object):
     
     # for 'array' test data
     def test_average_accuracy(self,test_X,test_Y,sess):
+        """
+            pred_cnt[p][r]:
+                    0      1       2
+            0 [[ r0->p0, r1->p0, r2->p0 ],
+            1  [ r0->p1, r1->p1, r2->p1 ],
+            2  [ r0->p2, r1->p2, r2->p2 ]] 
+            
+            sum_label[p]:
+              [ sum(p1),sum(p2), sum(p2)]
+            
+            r分到p的比例 l_d[p][r]]:
+            self.label_distribution = pred_per[p][r] = pred_cnt[p][r] / sum_label[p]
+            
+            正确率:
+            self.best_acc = diag(pred_per[p][r])
+            
+            平均正确率:
+            average(self.best_acc)
+            
+            总体平均正确率:
+            self.ave_acc = sum(n_pi->pi) / n_samples
+            
+        """
         # 图片分类任务
         n_class = test_Y.shape[1]
         
@@ -352,13 +363,15 @@ class Model(object):
             
             pred_cnt=np.zeros((n_class,n_class))
             for i in range(n_sample):
-                # 第 real_class[i] 号分类 被 分到了 第 pred_class[i] 号分类
-                pred_cnt[pred_class[i]][real_class[i]]=pred_cnt[pred_class[i]][real_class[i]]+1
-            sum_label = np.sum(pred_cnt,axis=0)
-            pred_per = pred_cnt /sum_label
-            self.label_distribution = pred_per
-            self.best_acc = np.diag(pred_per) # array是一个1维数组时，结果形成一个以一维数组为对角线元素的矩阵
-                                              # array是一个2维矩阵时，结果输出矩阵的对角线元素 <这里是这种情况>
+                # 第 r 号分类 被 分到了 第 p 号分类
+                p = pred_class[i]
+                r = real_class[i]
+                pred_cnt[p][r]=pred_cnt[p][r]+1
+            sum_label = np.sum(pred_cnt,axis=0) # 统计 pred 各分类总数
+            pred_per = pred_cnt /sum_label      # 计算 pred_cnt[p][r] 的百分比
+            self.label_distribution = pred_per  # 记录划分比例
+            self.best_acc = np.diag(pred_per)   # array是一个1维数组时，结果形成一个以一维数组为对角线元素的矩阵
+                                                # array是一个2维矩阵时，结果输出矩阵的对角线元素 <这里是这种情况>
         return acc
     
     ##########################
@@ -368,10 +381,10 @@ class Model(object):
     def show_and_save_result(self,figname):
          
         if self.test_Y is not None:
-            
+            print("Show Testing result...")
             if self.use_for=='classification':
                 for i in range(len(self.best_acc)):
-                    print(">>>Test Class {}:".format(i+1))
+                    print(">>> Class {}:".format(i+1))
                     print('[Accuracy]: {:.4}%'.format(self.best_acc[i]*100))
                 print('[Average accuracy]: {:.4}%'.format(self.ave_acc*100))
                 self.plot_label_distribution()   # 显示预测分布
