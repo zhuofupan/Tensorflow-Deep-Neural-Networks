@@ -49,7 +49,7 @@ class AE(Model):
             self.build_model()
             
     ###################
-    #    RBM_model    #
+    #     AE_model    #
     ###################
     
     def build_model(self):
