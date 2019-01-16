@@ -17,12 +17,14 @@ pip install --upgrade --user numpy pandas h5py （升级包） <br />
 
 # 版本信息
 Note 用户可以通过model.py文件控制一些功能的开关： <br />
-·→ self.show_pic: show curve in 'Console'? <br />
-·→ self.tbd: open/close tensorboard <br />
-·→ self.save_model: save/ not save model <br />
-·→ self.plot_para: plot W image or not <br />
-·→ self.save_weight: save W matrix or not <br />
-·→ self.do_tSNE: do t-SNE or not <br />
+·→ self.show_pic => show curve in 'Console'? <br />
+·→ self.tbd => open/close tensorboard <br />
+·→ self.save_model => save/ not save model <br />
+·→ self.plot_para => plot W image or not <br />
+·→ self.save_weight => save W matrix or not <br />
+·→ self.do_tSNE => do t-SNE or not <br />
+Note 现在的代码里有个bug，不支持二分类，只支持多分类。<br />
+如果要做二分类，要把2类转换成 “2列” 的one-hot标签，不然会得到错误的结果 <br />
 <br />
 Version 2018.11.7 <br />
 New 新增了两个数据集，一个用于分类，一个用于预测 <br />
