@@ -1,10 +1,10 @@
 # 包含网络
-- 推荐使用:
+- 推荐使用: </br>
 *Deep Belief Network (DBN)*  </br>
 *Stacked Autoencoder (sAE)* </br>
 *Stacked Sparse Autoencoder (sSAE)* </br>
 *Stacked Denoising Autoencoders (sDAE)* </br>
-- 尝试更好的模型：
+- 尝试更好的模型：</br>
 *Convolutional Neural Network (CNN)* </br>
 *Recurrent Neural Network (RNN)* </br>
 *Long Short Term Memory (LSTM)* </br>
