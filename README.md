@@ -1,49 +1,49 @@
 # 包含网络
 ——> 推荐使用：<br />
-Deep Belief Network (DBN) <br />
-Stacked Autoencoder (sAE) <br />
-Stacked Sparse Autoencoder (sSAE) <br />
-Stacked Denoising Autoencoders (sDAE) <br />
+**Deep Belief Network (DBN)** <br />
+**Stacked Autoencoder (sAE)** <br />
+**Stacked Sparse Autoencoder (sSAE)** <br />
+**Stacked Denoising Autoencoders (sDAE)** <br />
 ——> 尝试更好的模型：<br />
 Convolutional Neural Network (CNN) <br />
 Recurrent Neural Network (RNN) <br />
 Long Short Term Memory (LSTM) <br />
 
 # 所依赖包
-pip install tensorflow <br />
-pip install keras <br />
-pip install librosa （用于语音分类，选装） <br />
-pip install --upgrade --user numpy pandas h5py （升级包） <br />
+`pip install tensorflow` <br />
+`pip install keras` <br />
+`pip install librosa` （用于语音分类，选装） <br />
+`pip install --upgrade --user numpy pandas h5py` （升级包） <br />
 
 # 版本信息
-- 升级版本：
+## 升级版本：
 隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) <br />
-- Note:
+## Note:
 用户可以通过model.py文件控制一些功能的开关： <br />
-·→ self.show_pic => show curve in 'Console'? <br />
-·→ self.tbd => open/close tensorboard <br />
-·→ self.save_model => save/ not save model <br />
-·→ self.plot_para => plot W image or not <br />
-·→ self.save_weight => save W matrix or not <br />
-·→ self.do_tSNE => do t-SNE or not <br />
+·→ `self.show_pic` => show curve in 'Console'? <br />
+·→ `self.tbd` => open/close tensorboard <br />
+·→ `self.save_model` => save/ not save model <br />
+·→ `self.plot_para` => plot W image or not <br />
+·→ `self.save_weight` => save W matrix or not <br />
+·→ `self.do_tSNE` => do t-SNE or not <br />
 现在的代码里有个bug，不支持二分类，只支持多分类。如果要做二分类，<br />
 要把2类转换成 “2列” 的one-hot标签，不然会得到错误的结果 <br />
 
-- Version 2018.11.7:
+## Version 2018.11.7:
 New 新增了两个数据集，一个用于分类，一个用于预测 <br />
 New 新增t-SNE低维可视化 <br />
-Chg 修正部分 use_for = 'prediction' 时的Bug <br />
+Chg 修正部分 `use_for = 'prediction'` 时的Bug <br />
 
-- Version 2018.6.1:
+## Version 2018.6.1:
 New 新增了绘制训练曲线图，预测标签分布图，权值图的功能 <br />
 Chg 重写了SAE，现在可以放心使用了 <br />
-Chg 代码的整体运行函数run_sess放到了base_func.py <br />
-Chg 回归是可以实现的，需要设置 use_for = 'prediction' <br />
+Chg 代码的整体运行函数`run_sess`放到了`base_func.py` <br />
+Chg 回归是可以实现的，需要设置 `use_for = 'prediction'` <br />
 
 # 测试结果
-用于minst数据集分类，运行得到正确率可达98.78%；<br />
-用于Urban Sound Classification语音分类，正确率达73.37%；<br />
-用于Big Mart Sales III预测，RMSE为1152.04 <br />
+用于`minst`数据集分类，运行得到正确率可达98.78%；<br />
+用于`Urban Sound Classification`语音分类，正确率达73.37%；<br />
+用于`Big Mart Sales III`预测，RMSE为1152.04 <br />
 <br />
 跑的结果并不是太高，有更好的方法请赐教。 <br />
 语音分类未尝试语谱法，欢迎做过的和我交流。<br />
