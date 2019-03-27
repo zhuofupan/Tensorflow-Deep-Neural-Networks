@@ -19,13 +19,14 @@ pip install --upgrade --user numpy pandas h5py （升级包）
 
 # 版本信息
 ## 升级版本：
-隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) </br>
+隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) 
+
 ## Note:
 现在的代码里有个bug，不支持二分类，只支持多分类。如果要做二分类，</br>
 要把2类转换成 “2列” 的one-hot标签，不然会得到错误的结果 
 
 ## User：
-用户可以通过model.py文件控制一些功能的开关： </br>
+用户可以通过`model.py`文件控制一些功能的开关： </br>
 - `self.show_pic` => show curve in 'Console'? </br>
 - `self.tbd` => open/close tensorboard </br>
 - `self.save_model` => save/ not save model </br>
@@ -36,13 +37,13 @@ pip install --upgrade --user numpy pandas h5py （升级包）
 ## Version 2018.11.7:
 New 新增了两个数据集，一个用于分类，一个用于预测 </br>
 New 新增t-SNE低维可视化 </br>
-Chg 修正部分 `use_for = 'prediction'` 时的Bug </br>
+Chg 修正部分 `use_for = 'prediction'` 时的Bug
 
 ## Version 2018.6.1:
 New 新增了绘制训练曲线图，预测标签分布图，权值图的功能 </br>
 Chg 重写了SAE，现在可以放心使用了 </br>
 Chg 代码的整体运行函数`run_sess`放到了`base_func.py` </br>
-Chg 回归是可以实现的，需要设置 `use_for = 'prediction'` </br>
+Chg 回归是可以实现的，需要设置 `use_for = 'prediction'`
 
 # 测试结果
 用于`minst`数据集分类，运行得到正确率可达98.78%；</br>
