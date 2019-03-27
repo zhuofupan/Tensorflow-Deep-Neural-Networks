@@ -48,20 +48,20 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'` <br />
 跑的结果并不是太高，有更好的方法请赐教。 <br />
 语音分类未尝试语谱法，欢迎做过的和我交流。<br />
 <br />
-USC: https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/ <br />
-BMS III: https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/ <br />
+[USC](https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/) <br />
+[BMS III](https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/) <br />
 
 # 参考资料
-TF基本函数：http://www.cnblogs.com/wuzhitj/p/6431381.html <br />
-RBM原理：https://blog.csdn.net/itplus/article/details/19168937 <br />
-Hinton源码：http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html <br />
-sDAE原论文：http://www.jmlr.org/papers/volume11/vincent10a/vincent10a.pdf <br />
-sSAE分析TE：https://www.sciencedirect.com/science/article/pii/S0169743917302496 <br />
-RNN原理：https://zhuanlan.zhihu.com/p/28054589 <br />
-LSTM：https://www.jianshu.com/p/9dc9f41f0b29 <br />
-Tensorboard：https://blog.csdn.net/sinat_33761963/article/details/62433234 <br />
+[TF基本函数](http://www.cnblogs.com/wuzhitj/p/6431381.html), 
+[RBM原理](https://blog.csdn.net/itplus/article/details/19168937), 
+[Hinton源码](http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html), 
+[sDAE原论文](http://www.jmlr.org/papers/volume11/vincent10a/vincent10a.pdf), 
+[sSAE分析TE](https://www.sciencedirect.com/science/article/pii/S0169743917302496), 
+[RNN原理](https://zhuanlan.zhihu.com/p/28054589), 
+[LSTM](https://www.jianshu.com/p/9dc9f41f0b29), 
+[Tensorboard](https://blog.csdn.net/sinat_33761963/article/details/62433234) <br />
 
 # My blog
-知乎：https://www.zhihu.com/people/fu-zi-36-41/posts <br />
-CSDN：https://blog.csdn.net/fuzimango/article/list/ <br />
+[知乎](https://www.zhihu.com/people/fu-zi-36-41/posts), 
+[CSDN](https://blog.csdn.net/fuzimango/article/list/) <br />
 QQ群：640571839 <br />
