@@ -1,10 +1,10 @@
 # 包含网络
-**——> 推荐使用：**<br />
+- 推荐使用:
 *Deep Belief Network (DBN)* <br />
 *Stacked Autoencoder (sAE)* <br />
 *Stacked Sparse Autoencoder (sSAE)* <br />
 *Stacked Denoising Autoencoders (sDAE)* <br />
-**——> 尝试更好的模型：**<br />
+- 尝试更好的模型：
 *Convolutional Neural Network (CNN)* <br />
 *Recurrent Neural Network (RNN)* <br />
 *Long Short Term Memory (LSTM)* <br />
@@ -47,8 +47,9 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'` <br />
 <br />
 跑的结果并不是太高，有更好的方法请赐教。 <br />
 语音分类未尝试语谱法，欢迎做过的和我交流。<br />
-<br />
-[USC](https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/) <br />
+
+# 数据地址
+[USC](https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/), 
 [BMS III](https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/) <br />
 
 # 参考资料
