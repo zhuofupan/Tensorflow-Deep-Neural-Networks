@@ -16,6 +16,8 @@ pip install librosa （用于语音分类，选装） <br />
 pip install --upgrade --user numpy pandas h5py （升级包） <br />
 
 # 版本信息
+- 升级版本：
+隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) <br />
 Note 用户可以通过model.py文件控制一些功能的开关： <br />
 ·→ self.show_pic => show curve in 'Console'? <br />
 ·→ self.tbd => open/close tensorboard <br />
