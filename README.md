@@ -20,12 +20,12 @@ Long Short Term Memory (LSTM) <br />
 隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) <br />
 ## Note:
 用户可以通过model.py文件控制一些功能的开关： <br />
-·→ `self.show_pic` => show curve in 'Console'? <br />
-·→ `self.tbd` => open/close tensorboard <br />
-·→ `self.save_model` => save/ not save model <br />
-·→ `self.plot_para` => plot W image or not <br />
-·→ `self.save_weight` => save W matrix or not <br />
-·→ `self.do_tSNE` => do t-SNE or not <br />
+`self.show_pic` => show curve in 'Console'? <br />
+`self.tbd` => open/close tensorboard <br />
+`self.save_model` => save/ not save model <br />
+`self.plot_para` => plot W image or not <br />
+`self.save_weight` => save W matrix or not <br />
+`self.do_tSNE` => do t-SNE or not <br />
 现在的代码里有个bug，不支持二分类，只支持多分类。如果要做二分类，<br />
 要把2类转换成 “2列” 的one-hot标签，不然会得到错误的结果 <br />
 
