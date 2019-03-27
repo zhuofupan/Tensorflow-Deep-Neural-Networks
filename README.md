@@ -1,13 +1,13 @@
 # 包含网络
-——> 推荐使用：<br />
-**Deep Belief Network (DBN)** <br />
-**Stacked Autoencoder (sAE)** <br />
-**Stacked Sparse Autoencoder (sSAE)** <br />
-**Stacked Denoising Autoencoders (sDAE)** <br />
-——> 尝试更好的模型：<br />
-Convolutional Neural Network (CNN) <br />
-Recurrent Neural Network (RNN) <br />
-Long Short Term Memory (LSTM) <br />
+**——> 推荐使用：**<br />
+*Deep Belief Network (DBN)* <br />
+*Stacked Autoencoder (sAE)* <br />
+*Stacked Sparse Autoencoder (sSAE)* <br />
+*Stacked Denoising Autoencoders (sDAE)* <br />
+**——> 尝试更好的模型：**<br />
+*Convolutional Neural Network (CNN)* <br />
+*Recurrent Neural Network (RNN)* <br />
+*Long Short Term Memory (LSTM)* <br />
 
 # 所依赖包
 `pip install tensorflow` <br />
@@ -52,11 +52,11 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'` <br />
 [BMS III](https://datahack.analyticsvidhya.com/contest/practice-problem-big-mart-sales-iii/) <br />
 
 # 参考资料
-[TF基本函数](http://www.cnblogs.com/wuzhitj/p/6431381.html), 
+[Tensorflow基本函数](http://www.cnblogs.com/wuzhitj/p/6431381.html), 
 [RBM原理](https://blog.csdn.net/itplus/article/details/19168937), 
 [Hinton源码](http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html), 
 [sDAE原论文](http://www.jmlr.org/papers/volume11/vincent10a/vincent10a.pdf), 
-[sSAE分析TE](https://www.sciencedirect.com/science/article/pii/S0169743917302496), 
+[sSAE分析TE过程](https://www.sciencedirect.com/science/article/pii/S0169743917302496), 
 [RNN原理](https://zhuanlan.zhihu.com/p/28054589), 
 [LSTM](https://www.jianshu.com/p/9dc9f41f0b29), 
 [Tensorboard](https://blog.csdn.net/sinat_33761963/article/details/62433234) <br />
