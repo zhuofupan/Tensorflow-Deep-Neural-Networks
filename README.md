@@ -22,7 +22,7 @@ pip install --upgrade --user numpy pandas h5py （升级包）
 隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) 
 
 ## Note:
-现在的代码里有个bug，不支持二分类，只支持多分类。如果要做二分类，</br>
+现在的代码里有个bug，不支持二分类，只支持多分类。如果要做二分类 </br>
 要把2类转换成 “2列” 的one-hot标签，不然会得到错误的结果 
 
 ## User：
@@ -46,12 +46,12 @@ Chg 代码的整体运行函数`run_sess`放到了`base_func.py` </br>
 Chg 回归是可以实现的，需要设置 `use_for = 'prediction'`
 
 # 测试结果
-用于`minst`数据集分类，运行得到正确率可达98.78%；</br>
-用于`Urban Sound Classification`语音分类，正确率达73.37%；</br>
+用于`minst`数据集分类，运行得到正确率可达98.78% </br>
+用于`Urban Sound Classification`语音分类，正确率达73.37% </br>
 用于`Big Mart Sales III`预测，RMSE为1152.04 </br></br>
 
-跑的结果并不是太高，有更好的方法请赐教。 </br>
-语音分类未尝试语谱法，欢迎做过的和我交流。</br>
+跑的结果并不是太高，有更好的方法请赐教 </br>
+语音分类未尝试语谱法，欢迎做过的和我交流 </br>
 
 # 数据地址
 [USC](https://datahack.analyticsvidhya.com/contest/practice-problem-urban-sound-classification/), 
