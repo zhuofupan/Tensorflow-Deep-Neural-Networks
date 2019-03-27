@@ -27,12 +27,12 @@ pip install --upgrade --user numpy pandas h5py （升级包）
 
 ## User：
 用户可以通过`model.py`文件控制一些功能的开关： </br>
-- `self.show_pic` => show curve in 'Console'? </br>
-- `self.tbd` => open/close tensorboard </br>
-- `self.save_model` => save/ not save model </br>
-- `self.plot_para` => plot W image or not </br>
-- `self.save_weight` => save W matrix or not </br>
-- `self.do_tSNE` => do t-SNE or not
+`self.show_pic` => show curve in 'Console'? </br>
+`self.tbd` => open/close tensorboard </br>
+`self.save_model` => save/ not save model </br>
+`self.plot_para` => plot W image or not </br>
+`self.save_weight` => save W matrix or not </br>
+`self.do_tSNE` => do t-SNE or not
 
 ## Version 2018.11.7:
 New 新增了两个数据集，一个用于分类，一个用于预测 </br>
