@@ -70,4 +70,5 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'`
 # My blog
 [知乎](https://www.zhihu.com/people/fu-zi-36-41/posts), 
 [CSDN](https://blog.csdn.net/fuzimango/article/list/) </br>
-QQ群：640571839 
+QQ群：640571839 </br>
+P.S. 群不知道为什么搜索不到了，要入群的小伙伴可以先加我QQ：475366898 
