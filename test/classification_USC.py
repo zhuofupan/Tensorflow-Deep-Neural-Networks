@@ -15,7 +15,7 @@ from sup_sae import supervised_sAE
 from read_usc_data import submission,read_data
 from base_func import run_sess
     
-datasets = read_data(meth='harm') 
+datasets = read_data(meth='mfcc') 
 
 #X_train, Y_train, X_test, Y_test =read_sf_data(dynamic=t)
 
