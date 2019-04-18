@@ -280,7 +280,7 @@ class Model(object):
     
             #**************** 写入 ******************
             if self.tbd:
-                summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.label_data: batch_x})
+                summary = sess.run(self.merge,feed_dict={self.input_data: batch_x,self.recon_data: batch_x})
                 summ.train_writer.add_summary(summary, i)
             #****************************************
             loss = sum_loss/b
