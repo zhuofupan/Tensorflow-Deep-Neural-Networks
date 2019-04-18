@@ -356,7 +356,10 @@ class Model(object):
         
         if acc > self.ave_acc:
             self.ave_acc = acc
-            pred_class=np.argmax(pred,axis=1)
+            if n_class > 1:
+                pred_class=np.argmax(pred,axis=1)
+            else:
+                n_class = 2
             real_class=self.real_class
             self.pred_class=pred_class
             n_sample = pred_class.shape[0]
