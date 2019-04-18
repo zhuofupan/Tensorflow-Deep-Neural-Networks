@@ -21,10 +21,6 @@ pip install --upgrade --user numpy pandas h5py （升级包）
 ## 升级版本：
 隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) 
 
-## Note:
-现在的代码里有个bug，不支持二分类，只支持多分类。如果要做二分类 </br>
-要把2类转换成 “2列” 的one-hot标签，不然会得到错误的结果 
-
 ## User：
 用户可以通过`model.py`文件控制一些功能的开关： </br>
 `self.show_pic` => show curve in 'Console'? </br>
