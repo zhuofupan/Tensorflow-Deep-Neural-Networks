@@ -43,8 +43,8 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'`
 
 # 测试结果
 用于`minst`数据集分类，运行得到正确率可达98.78% </br>
-用于`Urban Sound Classification`语音分类，正确率达73.37% </br>
-用于`Big Mart Sales III`预测，RMSE为1152.04 </br></br>
+用于`Urban Sound Classification`语音分类，正确率达73.37% (这个跑完console不会显示结果，是网上的比赛数据集，正确率是上传得到的结果)</br>
+用于`Big Mart Sales III`预测，RMSE为1152.04 (这个也是网上的数据集，没办法，我找的预测数据集都是没有test_Y的)</br></br>
 
 跑的结果并不是太高，有更好的方法请赐教 </br>
 语音分类未尝试语谱法，欢迎做过的和我交流 </br>
