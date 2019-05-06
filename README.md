@@ -8,6 +8,8 @@
 *Convolutional Neural Network (CNN)* </br>
 *Recurrent Neural Network (RNN)* </br>
 *Long Short Term Memory (LSTM)* </br>
+- 强烈推荐：</br>
+*[PyTorch包](https://github.com/fuzimaoxinan/torch-fuzz)* </br>
 
 # 所依赖包
 ```python
