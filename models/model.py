@@ -257,7 +257,7 @@ class Model(object):
         if self.use_label: labels = train_Y
         else: labels = None
         _data=Batch(images=train_X,
-                    labels=labels,
+                    labels=None,
                     batch_size=self.batch_size)
         
         b = int(train_X.shape[0]/self.batch_size)
