@@ -26,13 +26,12 @@ class RBM(Model):
         self.lr = rbm_lr
         self.decay_lr= True
         
-        def func(name):
+        def conditional_probability(name):
             if name=='bin': return act_func('sigmoid')
             elif name=='gauss': return act_func('affine')
-            elif name=='tanh': return act_func('tanh')
         
-        self.h_func=func(self.units_type[1])
-        self.v_func=func(self.units_type[0])
+        self.h_func=conditional_probability(self.units_type[1])
+        self.v_func=conditional_probability(self.units_type[0])
             
         with tf.name_scope(self.name):
             self.build_model()
