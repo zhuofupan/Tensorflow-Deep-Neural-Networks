@@ -8,9 +8,6 @@
 *Convolutional Neural Network (CNN)* </br>
 *Recurrent Neural Network (RNN)* </br>
 *Long Short Term Memory (LSTM)* </br>
-- 强烈推荐：</br>
-*[PyTorch包](https://github.com/fuzimaoxinan/torch-fuzz)* </br>
-
 # 所依赖包
 ```python
 pip install tensorflow
@@ -21,7 +18,8 @@ pip install --upgrade --user numpy pandas h5py （升级包）
 
 # 版本信息
 ## 升级版本：
-隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) 
+隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) </br>
+推荐[PyTorch包](https://github.com/fuzimaoxinan/torch-fuzz) </br>
 
 ## User：
 用户可以通过`model.py`文件控制一些功能的开关： </br>
