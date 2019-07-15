@@ -17,8 +17,7 @@ pip install --upgrade --user numpy pandas h5py （升级包）
 ```
 
 # 版本信息
-## 升级版本：
-隔壁的[deepfree](https://github.com/fuzimaoxinan/deepfree) </br>
+## Pytorch版本：
 推荐[PyTorch包](https://github.com/fuzimaoxinan/torch-fuzz) </br>
 
 ## User：
