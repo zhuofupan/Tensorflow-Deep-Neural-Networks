@@ -68,3 +68,6 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'`
 [知乎](https://www.zhihu.com/people/fu-zi-36-41/posts), 
 [CSDN](https://blog.csdn.net/fuzimango/article/list/) </br>
 QQ群：640571839
+
+# paper
+[EDBN](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub) 欢迎引用~
