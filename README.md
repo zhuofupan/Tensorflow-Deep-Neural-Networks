@@ -12,8 +12,8 @@
 ```python
 pip install tensorflow (version: 1.X)
 pip install keras
-pip install librosa （用于语音分类，选装）
-pip install --upgrade --user numpy pandas h5py （升级包）
+pip install librosa (用于语音分类，选装)
+pip install --upgrade --user numpy pandas h5py (升级包)
 ```
 # 用于任务
 `use_for = 'classification'` 用于分类任务 </br>
