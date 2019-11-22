@@ -10,7 +10,7 @@
 *Long Short Term Memory (LSTM)* </br>
 # 所依赖包
 ```python
-pip install tensorflow
+pip install tensorflow (version: 1.X)
 pip install keras
 pip install librosa （用于语音分类，选装）
 pip install --upgrade --user numpy pandas h5py （升级包）
