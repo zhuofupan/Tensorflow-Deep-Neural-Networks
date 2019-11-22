@@ -15,12 +15,11 @@ pip install keras
 pip install librosa （用于语音分类，选装）
 pip install --upgrade --user numpy pandas h5py （升级包）
 ```
+# 用于任务：
+`use_for = 'classification'` 用于分类任务 </br>
+`use_for = 'prediction'` 用于预测任务 </br>
 
 # 版本信息
-## 用于任务：
-`use_for = 'classification'`用于分类任务 </br>
-`use_for = 'prediction'`用于预测任务 </br>
-
 ## Pytorch版本：
 推荐[PyTorch包](https://github.com/fuzimaoxinan/torch-fuzz) </br>
 
