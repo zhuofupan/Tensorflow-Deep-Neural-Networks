@@ -72,7 +72,7 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'`
 [CSDN](https://blog.csdn.net/fuzimango/article/list/) </br>
 QQ群：640571839
 
-# paper
+# Paper
 欢迎引用~</br>
 [[1] EDBN: A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub) </br>
 [[2] CG-SAE: A classification-driven neuron-grouped SAE for feature representation and its application to fault classification in chemical processes](https://www.sciencedirect.com/science/article/pii/S0950705121006122) </br>
