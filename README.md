@@ -76,5 +76,5 @@ QQ群：640571839
 欢迎引用~</br>
 [[1] EDBN: A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub) </br>
 [[2] CG-SAE: A classification-driven neuron-grouped SAE for feature representation and its application to fault classification in chemical processes](https://www.sciencedirect.com/science/article/pii/S0950705121006122) </br>
-[EDBN: A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub) </br>
-[EDBN: A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub) </br>
+[[3] Review: Data-Driven Fault Diagnosis for Traction Systems in High-Speed Trains: A Survey, Challenges, and Perspectives](https://ieeexplore.ieee.org/abstract/document/9237134?casa_token=s5x0G5FMme0AAAAA:DuVqfDrkdk06Vgzx_mw1LW-QRVTHMje-3Yvf8p8-uoRPLIft02J48fkObFy_tj0yHznVbYKu) </br>
+[[4] Review: A Review of Fault Detection and Diagnosis for the Traction System in High-Speed Trains](https://ieeexplore.ieee.org/abstract/document/8654208?casa_token=GLx56ooTyeAAAAAA:Csb_mMFIUGBAqbs30ozzKZMC9OYlT4klWmC-m9Xa_qIjuezRaA6kqpAGqjfugGbYIWtPFZYW) </br>
