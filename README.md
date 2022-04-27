@@ -68,13 +68,17 @@ Chg 回归是可以实现的，需要设置 `use_for = 'prediction'`
 [Tensorboard](https://blog.csdn.net/sinat_33761963/article/details/62433234) 
 
 # My blog
+[ResearchGate](https://www.researchgate.net/profile/Zhuofu-Pan),
 [知乎](https://www.zhihu.com/people/fu-zi-36-41/posts), 
 [CSDN](https://blog.csdn.net/fuzimango/article/list/) </br>
 QQ群：640571839
 
 # Paper
-欢迎引用~</br>
-[[1] EDBN: A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub) </br>
-[[2] CG-SAE: A classification-driven neuron-grouped SAE for feature representation and its application to fault classification in chemical processes](https://www.sciencedirect.com/science/article/pii/S0950705121006122) </br>
-[[3] Review: Data-Driven Fault Diagnosis for Traction Systems in High-Speed Trains: A Survey, Challenges, and Perspectives](https://ieeexplore.ieee.org/abstract/document/9237134?casa_token=s5x0G5FMme0AAAAA:DuVqfDrkdk06Vgzx_mw1LW-QRVTHMje-3Yvf8p8-uoRPLIft02J48fkObFy_tj0yHznVbYKu) </br>
-[[4] Review: A Review of Fault Detection and Diagnosis for the Traction System in High-Speed Trains](https://ieeexplore.ieee.org/abstract/document/8654208?casa_token=GLx56ooTyeAAAAAA:Csb_mMFIUGBAqbs30ozzKZMC9OYlT4klWmC-m9Xa_qIjuezRaA6kqpAGqjfugGbYIWtPFZYW) </br>
+希望大家多支持支持我们的工作，欢迎交流探讨~</br>
+[[1] Z. Pan, H. Chen, Y. Wang, B. Huang, and W. Gui, "A new perspective on ae-and vae-based process monitoring," TechRxiv, Apr. 2022, doi.10.36227/techrxiv.19617534.](https://www.techrxiv.org/articles/preprint/A_New_Perspective_on_AE-_and_VAE-based_Process_Monitoring/19617534) </br>
+[2] Z. Pan, Y. Wang, K. Wang, H. Chen, C. Yang, and W. Gui, "Imputation of Missing Values in Time Series Using an Adaptive-Learned Median-Filled Deep Autoencoder", IEEE Trans. Cybern., 2022, doi.10.1109/TCYB.2022.3167995. </br>
+[[3] Y. Wang, Z. Pan, X. Yuan, C. Yang, and W. Gui, “A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network,” ISA Trans., vol. 96, pp. 457–467, 2020.](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub) </br>
+[[4] Z. Pan, Y. Wang, X. Yuan, C. Yang, and W. Gui, “A classification-driven neuron-grouped sae for feature representation and its application to fault
+classification in chemical processes,” Knowl.-Based Syst., vol. 230, p. 107350, 2021.](https://www.sciencedirect.com/science/article/pii/S0950705121006122) </br>
+[[5] H. Chen, B. Jiang, S. X. Ding, and B. Huang, “Data-driven fault diagnosis for traction systems in high-speed trains: A survey, challenges, and perspectives,” IEEE Trans. Intell. Transp. Syst., 2020, doi.10.1109/TITS.2020.3029946.](https://ieeexplore.ieee.org/abstract/document/9237134?casa_token=s5x0G5FMme0AAAAA:DuVqfDrkdk06Vgzx_mw1LW-QRVTHMje-3Yvf8p8-uoRPLIft02J48fkObFy_tj0yHznVbYKu) </br>
+[[6] H. Chen and B. Jiang, “A review of fault detection and diagnosis for the traction system in high-speed trains,” IEEE Trans. Intell. Transp. Syst., vol. 21, no. 2, pp. 450–465, Feb. 2020.](https://ieeexplore.ieee.org/abstract/document/8654208?casa_token=GLx56ooTyeAAAAAA:Csb_mMFIUGBAqbs30ozzKZMC9OYlT4klWmC-m9Xa_qIjuezRaA6kqpAGqjfugGbYIWtPFZYW) </br>
