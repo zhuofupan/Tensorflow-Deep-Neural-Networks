@@ -76,9 +76,10 @@ QQ群：640571839
 # Paper
 希望大家多支持支持我们的工作，欢迎交流探讨~</br>
 [1] Z. Pan, H. Chen, Y. Wang, B. Huang, and W. Gui, "[A new perspective on ae-and vae-based process monitoring](https://www.techrxiv.org/articles/preprint/A_New_Perspective_on_AE-_and_VAE-based_Process_Monitoring/19617534)," TechRxiv, Apr. 2022, doi.10.36227/techrxiv.19617534. </br>
-[2] Z. Pan, Y. Wang, K. Wang, H. Chen, C. Yang, and W. Gui, "Imputation of Missing Values in Time Series Using an Adaptive-Learned Median-Filled Deep Autoencoder", IEEE Trans. Cybern., 2022, doi.10.1109/TCYB.2022.3167995. </br>
+[2] Z. Pan, Y. Wang, K. Wang, H. Chen, C. Yang, and W. Gui, "[Imputation of Missing Values in Time Series Using an Adaptive-Learned Median-Filled Deep Autoencoder](https://ieeexplore.ieee.org/document/9768200)", IEEE Trans. Cybern., 2022, doi.10.1109/TCYB.2022.3167995. </br>
 [3] Y. Wang, Z. Pan, X. Yuan, C. Yang, and W. Gui, "[A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub),” ISA Trans., vol. 96, pp. 457–467, 2020. </br>
 [4] Z. Pan, Y. Wang, X. Yuan, C. Yang, and W. Gui, "[A classification-driven neuron-grouped sae for feature representation and its application to fault
 classification in chemical processes](https://www.sciencedirect.com/science/article/pii/S0950705121006122) ," Knowl.-Based Syst., vol. 230, p. 107350, 2021. </br>
 [5] H. Chen, B. Jiang, S. X. Ding, and B. Huang, "[Data-driven fault diagnosis for traction systems in high-speed trains: A survey, challenges, and perspectives](https://ieeexplore.ieee.org/abstract/document/9237134?casa_token=s5x0G5FMme0AAAAA:DuVqfDrkdk06Vgzx_mw1LW-QRVTHMje-3Yvf8p8-uoRPLIft02J48fkObFy_tj0yHznVbYKu)," IEEE Trans. Intell. Transp. Syst., 2020, doi.10.1109/TITS.2020.3029946. </br>
 [6] H. Chen and B. Jiang, "[A review of fault detection and diagnosis for the traction system in high-speed trains](https://ieeexplore.ieee.org/abstract/document/8654208?casa_token=GLx56ooTyeAAAAAA:Csb_mMFIUGBAqbs30ozzKZMC9OYlT4klWmC-m9Xa_qIjuezRaA6kqpAGqjfugGbYIWtPFZYW)," IEEE Trans. Intell. Transp. Syst., vol. 21, no. 2, pp. 450–465, Feb. 2020. </br>
+
