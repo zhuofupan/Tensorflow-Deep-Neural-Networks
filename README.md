@@ -76,8 +76,8 @@ QQ群：640571839
 # Paper
 希望大家多支持支持我们的工作，欢迎交流探讨~</br>
 [1] Z. Pan, H. Chen, Y. Wang, B. Huang, and W. Gui, "[A new perspective on ae-and vae-based process monitoring](https://www.techrxiv.org/articles/preprint/A_New_Perspective_on_AE-_and_VAE-based_Process_Monitoring/19617534)," TechRxiv, Apr. 2022, doi.10.36227/techrxiv.19617534. </br>
-[2] Z. Pan, Y. Wang, k. Wang, G. Ran, H. Chen, and W. Gui, "Layer-Wise Contribution-Filtered Propagation for Deep Learning-Based Fault Isolation," Int. J. Robust Nonlinear Control, Jul. 2022, doi.10.1002/rnc.6328 </br>
-[3] Z. Pan, Y. Wang, K. Wang, H. Chen, C. Yang, and W. Gui, "[Imputation of Missing Values in Time Series Using an Adaptive-Learned Median-Filled Deep Autoencoder](https://ieeexplore.ieee.org/document/9768200)", IEEE Trans. Cybern., 2022, doi.10.1109/TCYB.2022.3167995 </br>
+[2] Z. Pan, Y. Wang, k. Wang, G. Ran, H. Chen, and W. Gui, "[Layer-Wise Contribution-Filtered Propagation for Deep Learning-Based Fault Isolation](https://onlinelibrary.wiley.com/doi/10.1002/rnc.6328)," Int. J. Robust Nonlinear Control, Jul. 2022, doi.10.1002/rnc.6328 </br>
+[3] Z. Pan, Y. Wang, K. Wang, H. Chen, C. Yang, and W. Gui, "[Imputation of Missing Values in Time Series Using an Adaptive-Learned Median-Filled Deep Autoencoder](https://ieeexplore.ieee.org/document/9768200)," IEEE Trans. Cybern., 2022, doi.10.1109/TCYB.2022.3167995 </br>
 [4] Y. Wang, Z. Pan, X. Yuan, C. Yang, and W. Gui, "[A novel deep learning based fault diagnosis approach for chemical process with extended deep belief network](https://www.sciencedirect.com/science/article/pii/S0019057819302903?via%3Dihub),” ISA Trans., vol. 96, pp. 457–467, 2020. </br>
 [5] Z. Pan, Y. Wang, X. Yuan, C. Yang, and W. Gui, "[A classification-driven neuron-grouped sae for feature representation and its application to fault
 classification in chemical processes](https://www.sciencedirect.com/science/article/pii/S0950705121006122) ," Knowl.-Based Syst., vol. 230, p. 107350, 2021. </br>
